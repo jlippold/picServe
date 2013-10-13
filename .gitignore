@@ -17,5 +17,7 @@ DerivedData
 *.hmap
 *.xccheckout
 
-#CocoaPods
-Pods
+iOSClient/build/
+iOSClient/CordovaLib/build/
+winServer/picServ/obj/
+winServer/picServ/bin/

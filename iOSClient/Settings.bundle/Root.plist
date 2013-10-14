@@ -28,7 +28,7 @@
 			<key>AutocorrectionType</key>
 			<string>No</string>
 			<key>DefaultValue</key>
-			<string>0</string>
+			<string>12345</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
@@ -46,7 +46,7 @@
 			<key>AutocorrectionType</key>
 			<string>No</string>
 			<key>DefaultValue</key>
-			<string>0</string>
+			<string>54321</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>

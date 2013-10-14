@@ -68,7 +68,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("I:\Pictures\Jed-iPhone;I:\Pictures\Syn-iPhone;I:\Pictures\Syn")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
         Public Property Folders() As String
             Get
                 Return CType(Me("Folders"),String)

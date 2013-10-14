@@ -6,7 +6,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Folders" Type="System.String" Scope="User">
-      <Value Profile="(Default)">I:\Pictures\Jed-iPhone;I:\Pictures\Syn-iPhone;I:\Pictures\Syn</Value>
+      <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Port" Type="System.String" Scope="User">
       <Value Profile="(Default)">12345</Value>

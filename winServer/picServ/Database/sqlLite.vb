@@ -59,7 +59,12 @@ Public Class db
             Using cmd = conn.CreateCommand()
                 conn.Open()
                 cmd.CommandText = sql
-                cmd.ExecuteNonQuery()
+                Try
+                    cmd.ExecuteNonQuery()
+                Catch ex As Exception
+                    Util.log("SQL Exception: " & ex.Message)
+                End Try
+
             End Using
         End Using
     End Sub

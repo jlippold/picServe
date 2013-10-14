@@ -1,9 +1,10 @@
 ﻿
 Public Class Form1
+    Public firstLoad As Boolean = True
+
     Private Sub Form1_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
         'hide app
         e.Cancel = True
-        nfi.Visible = True
         Me.WindowState = FormWindowState.Minimized
         Me.Visible = False
     End Sub
@@ -33,13 +34,18 @@ Public Class Form1
         Next
 
         Me.ToolStripStatusLabel1.DisplayStyle = ToolStripItemDisplayStyle.None
-        Me.Show()
+        nfi.Visible = True
+    End Sub
 
-        If WebServer.ValidateSettings Then
-            WebServer.ValidateAndBegin()
-            triggerCache()
+    Private Sub Form1_Shown(sender As Object, e As System.EventArgs) Handles Me.Shown
+        If firstLoad Then
+            If WebServer.ValidateSettings Then
+                WebServer.ValidateAndBegin()
+                triggerCache()
+                Me.Close()
+            End If
         End If
-
+        firstLoad = False
     End Sub
 
     Private Sub IndexFoldersToolStripMenuItem_Click(sender As System.Object, e As System.EventArgs) Handles IndexFoldersToolStripMenuItem.Click
@@ -107,10 +113,12 @@ Public Class Form1
     End Sub
 
     Private Sub ExitApp_Click(sender As Object, e As System.EventArgs) Handles ExitApp.Click
+        nfi.Visible = False
         End
     End Sub
 
     Private Sub ExitToolStripMenuItem_Click(sender As System.Object, e As System.EventArgs) Handles ExitToolStripMenuItem.Click
+        nfi.Visible = False
         End
     End Sub
 

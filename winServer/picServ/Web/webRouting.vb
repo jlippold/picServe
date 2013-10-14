@@ -77,7 +77,7 @@ Public Class webRouting
 
                     If QueryString("mode") = "thumbnail" And fileTypes(thisExtension).Contains("image") Then
                         Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
-                        cache = picUtil.getCacheDirectory() & "\img\" & cache & ".cache"
+                        cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
                         If File.Exists(cache) Then
                             Dim base64 As String = File.ReadAllText(cache)
                             base64 = base64.Substring(22)
@@ -112,26 +112,35 @@ Public Class webRouting
 
                 If thisExtension = ".mov" Then
                     If QueryString("mode") = "thumbnail" Then
-                        Try
-                            Dim newPic As New System.Drawing.Bitmap(My.Application.Info.DirectoryPath & "\images\video.png")
-                            Dim byteArray As Byte() = New Byte(-1) {}
-                            Using stream As New MemoryStream()
-                                newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
-                                stream.Close()
-                                byteArray = stream.ToArray()
-                            End Using
-                            WebServer.writeImageFromByteArray(byteArray, response)
-                            newPic.Dispose()
-                        Catch ex As Exception
-                            'WebServer.writeText(ex.Message, response)
-                        End Try
+                        Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
+                        cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
+                        If File.Exists(cache) Then
+                            Dim base64 As String = File.ReadAllText(cache)
+                            base64 = base64.Substring(22)
+                            Dim binaryData() As Byte = System.Convert.FromBase64String(base64)
+                            WebServer.writeBinary(binaryData, response, "text/html")
+                        Else
+                            Try
+                                Dim newPic As New System.Drawing.Bitmap(My.Application.Info.DirectoryPath & "\images\video.png")
+                                Dim byteArray As Byte() = New Byte(-1) {}
+                                Using stream As New MemoryStream()
+                                    newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                    stream.Close()
+                                    byteArray = stream.ToArray()
+                                End Using
+                                WebServer.writeImageFromByteArray(byteArray, response)
+                                newPic.Dispose()
+                            Catch ex As Exception
+                                'WebServer.writeText(ex.Message, response)
+                            End Try
+                        End If
                     Else
                         'Util.log("Requested Movie: " & p)
                         WebServer.writeVideoFromPath(p, response, fileTypes(thisExtension), range)
                     End If
 
 
-                End If
+                    End If
             Else
                 response.StatusCode = 404
                 response.StatusDescription = "Not Found"

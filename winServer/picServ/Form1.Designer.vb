@@ -31,6 +31,7 @@ Partial Class Form1
         Me.FileToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.OpenLogDirectoryToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.IndexFoldersToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.WipeCacheToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator1 = New System.Windows.Forms.ToolStripSeparator()
         Me.ExitToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
@@ -55,7 +56,6 @@ Partial Class Form1
         Me.UploadPort = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
-        Me.WipeCacheToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ContextMenuStrip1.SuspendLayout()
         Me.MenuStrip1.SuspendLayout()
         Me.StatusStrip1.SuspendLayout()
@@ -66,7 +66,6 @@ Partial Class Form1
         Me.nfi.ContextMenuStrip = Me.ContextMenuStrip1
         Me.nfi.Icon = CType(resources.GetObject("nfi.Icon"), System.Drawing.Icon)
         Me.nfi.Text = "picServ"
-        Me.nfi.Visible = True
         '
         'ContextMenuStrip1
         '
@@ -107,6 +106,12 @@ Partial Class Form1
         Me.IndexFoldersToolStripMenuItem.Name = "IndexFoldersToolStripMenuItem"
         Me.IndexFoldersToolStripMenuItem.Size = New System.Drawing.Size(177, 22)
         Me.IndexFoldersToolStripMenuItem.Text = "Refresh Cache"
+        '
+        'WipeCacheToolStripMenuItem
+        '
+        Me.WipeCacheToolStripMenuItem.Name = "WipeCacheToolStripMenuItem"
+        Me.WipeCacheToolStripMenuItem.Size = New System.Drawing.Size(177, 22)
+        Me.WipeCacheToolStripMenuItem.Text = "Wipe Cache"
         '
         'ToolStripSeparator1
         '
@@ -303,12 +308,6 @@ Partial Class Form1
         '
         Me.Timer1.Enabled = True
         Me.Timer1.Interval = 1800000
-        '
-        'WipeCacheToolStripMenuItem
-        '
-        Me.WipeCacheToolStripMenuItem.Name = "WipeCacheToolStripMenuItem"
-        Me.WipeCacheToolStripMenuItem.Size = New System.Drawing.Size(177, 22)
-        Me.WipeCacheToolStripMenuItem.Text = "Wipe Cache"
         '
         'Form1
         '

@@ -248,7 +248,12 @@ static dispatch_queue_t imageQueue = NULL;
     cell.titleLabel.shadowColor = [UIColor blackColor];
     cell.titleLabel.shadowOffset = CGSizeMake(0,-0.4);
     
-    [cell.deleteButton setHidden:YES];
+    if (isEditing) {
+        [cell.deleteButton setHidden:NO];
+    }else {
+        [cell.deleteButton setHidden:YES];
+    }
+    
     [cell.videoOverlay setHidden:YES];
     
     if (![url hasPrefix:@"http"]) {
@@ -524,14 +529,9 @@ NSTimer *timer;
     
 	NSDictionary *item =[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     int actualRow = [[item valueForKey:@"JSIndex"] intValue];
-
     UIBAlertView *alert = [[UIBAlertView alloc] initWithTitle:@"picServe" message:@"Are you sure you want to delete?"cancelButtonTitle:@"Delete" otherButtonTitles:@"Cancel",nil];
     
     [alert showWithDismissHandler:^(NSInteger selectedIndex, BOOL didCancel) {
-        if (didCancel) {
-            NSLog(@"User cancelled");
-            return;
-        }
         if (selectedIndex == 0 ) {
             NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.ImageCollection._onRightButtonTap(%d);", actualRow];
             [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
@@ -627,7 +627,7 @@ NSTimer *timer;
 
 - (void)queueFinished:(ASINetworkQueue *)queue
 {
-     NSLog(@"queue Done!");
+     //NSLog(@"queue Done!");
    // [_collectionView reloadData];
 }
 

@@ -308,7 +308,7 @@ var init = {
 
 				ic.onRightButtonTap(function(idx) {
 					idx = parseInt(idx, 10);
-					//console.log(idx);
+					console.log(idx);
 					var del = init.urlFromPath(images[idx].Path, "deleteFile").URL;
 					images.splice(idx, 1);
 

@@ -18,17 +18,43 @@ Public Class webRouting
         Dim query As String = uri.Query
         Dim QueryString As NameValueCollection = HttpUtility.ParseQueryString(query)
 
+        Dim contentExtensions As New Dictionary(Of String, String)
+        contentExtensions.Add(".html", "text/html")
+        contentExtensions.Add(".css", "text/css")
+        contentExtensions.Add(".js", "application/javascript")
+        contentExtensions.Add(".swf", "application/x-shockwave-flash")
+        contentExtensions.Add(".png", "image/png")
+
+        Dim found As Boolean = False
+        For Each p As KeyValuePair(Of String, String) In contentExtensions
+            If webPath.EndsWith(p.Key) Then
+                Dim path As String = My.Application.Info.DirectoryPath & "\html\" & webPath.Replace("/", "\")
+                If File.Exists(path) Then
+                    WebServer.writeFileFromPath(path, response, p.Value, False)
+                    Exit For
+                End If
+            End If
+        Next
+        If found Then
+            Exit Sub
+        End If
+
         If Auth.validate(QueryString("Key")) = False Then
             WebServer.writeText("Unauthorized", response)
             Exit Sub
         End If
 
         QueryString("HOST") = uri.Host & ":" & uri.Port
+
         Select Case webPath
             Case "/" 'UICollectionView json
                 WebServer.writeText(picUtil.getBaseFolderList(QueryString), response, "application/json")
             Case "/getfile/"
                 serveFile(QueryString, response, context.Request.Headers("Range"))
+            Case "/getfolders/"
+                WebServer.writeText(picUtil.getAllFolderList(QueryString), response, "application/json")
+            Case "/getfolder/"
+                WebServer.writeText(picUtil.getContentsOfFolder(QueryString), response, "application/json")
             Case "/getdynamic/" 'sql
                 WebServer.writeText(picUtil.runDynamicSQL(QueryString), response, "application/json")
             Case "/deletefile/"
@@ -62,7 +88,7 @@ Public Class webRouting
     Public Shared Sub serveFile(ByVal QueryString As NameValueCollection, response As HttpListenerResponse, Optional ByVal range As String = "")
         Dim output As String = ""
         Dim p As String = QueryString("Path")
-
+        p = p.Replace("||", "/")
         If picUtil.isValidPath(p) AndAlso p <> "" Then
             If File.Exists(p) Then
                 Dim fileTypes As Dictionary(Of String, String) = picUtil.getAllowedTypes()
@@ -72,6 +98,26 @@ Public Class webRouting
                     If QueryString("mode") = "" And fileTypes(thisExtension).Contains("image") Then
                         Util.log("Requested Full Size Image: " & p)
                         WebServer.writeImageFromPath(p, response)
+                        Exit Sub
+                    End If
+
+                    If QueryString("mode") = "rotate" And fileTypes(thisExtension).Contains("image") Then
+                        Try
+                            Dim oldPic As New System.Drawing.Bitmap(p)
+                            Dim newPic As System.Drawing.Bitmap = imaging.FixRotatation(oldPic)
+                            oldPic.Dispose()
+
+                            Dim byteArray As Byte() = New Byte(-1) {}
+                            Using stream As New MemoryStream()
+                                newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                stream.Close()
+                                byteArray = stream.ToArray()
+                            End Using
+                            WebServer.writeImageFromByteArray(byteArray, response)
+                            newPic.Dispose()
+                        Catch ex As Exception
+                            'WebServer.writeText(ex.Message, response)
+                        End Try
                         Exit Sub
                     End If
 

@@ -161,24 +161,37 @@ Public Class WebServer
     End Sub
 
     Public Shared Sub writeText(ByVal str As String, response As HttpListenerResponse, Optional ByVal contentType As String = "")
-        If contentType <> "" Then
-            response.ContentType = contentType
-        End If
+        Try
 
-        Dim responseString As String = str
-        Dim buffer() As Byte = System.Text.Encoding.UTF8.GetBytes(responseString)
-        response.ContentLength64 = buffer.Length
-        Dim output As System.IO.Stream = response.OutputStream
-        output.Write(buffer, 0, buffer.Length)
+            If contentType <> "" Then
+                response.ContentType = contentType
+            End If
+
+            Dim responseString As String = str
+            Dim buffer() As Byte = System.Text.Encoding.UTF8.GetBytes(responseString)
+            response.ContentLength64 = buffer.Length
+            Dim output As System.IO.Stream = response.OutputStream
+            output.Write(buffer, 0, buffer.Length)
+
+        Catch ex As Exception
+
+        End Try
+
+
         If response IsNot Nothing Then
             response.Close()
         End If
     End Sub
 
     Public Shared Sub writeBinary(ByVal content() As Byte, response As HttpListenerResponse, contentType As String)
-        response.ContentType = contentType
-        response.ContentLength64 = content.Length
-        response.OutputStream.Write(content, 0, content.Length)
+        Try
+            response.ContentType = contentType
+            response.ContentLength64 = content.Length
+            response.OutputStream.Write(content, 0, content.Length)
+        Catch ex As Exception
+
+        End Try
+
         If response IsNot Nothing Then
             response.Close()
         End If
@@ -199,9 +212,12 @@ Public Class WebServer
         End If
     End Sub
 
-    Public Shared Sub writeFileFromPath(ByVal p As String, response As HttpListenerResponse, ByVal mimetype As String)
+    Public Shared Sub writeFileFromPath(ByVal p As String, response As HttpListenerResponse, ByVal mimetype As String, Optional ByVal useContentDisposition As Boolean = True)
         response.ContentType = mimetype
-        response.Headers.Add("Content-Disposition: attachment; filename=""" & System.IO.Path.GetFileName(p) & """")
+        If useContentDisposition Then
+            response.Headers.Add("Content-Disposition: attachment; filename=""" & System.IO.Path.GetFileName(p) & """")
+        End If
+
         Dim content() As Byte = My.Computer.FileSystem.ReadAllBytes(p)
         response.ContentLength64 = content.Length
         response.OutputStream.Write(content, 0, content.Length)

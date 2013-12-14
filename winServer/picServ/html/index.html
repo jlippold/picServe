@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>picServe</title>
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="flowplayer/skin/minimalist.css">
+    <link href="fancybox/jquery.fancybox.css" rel="stylesheet"  />
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->    
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+        <div class="navbar-collapse collapse">
+
+            <ul class="nav navbar-nav">
+                <li>
+                    <div class="navbar-header">
+                        <a class="navbar-brand">picServe</a>
+                    </div>
+                </li>
+                <li>
+                    <a href="#" id='browseByDate'>Date</a>
+                </li>
+                <li>
+                    <a href="#" id='browseByFolder'>Folders</a>
+                </li>
+                <li>
+                    <div class="btn-group" style="position:fixed; right: 4px; top: 7px">
+                      <button type="button" class="btn btn-default" id="pass">Set Password</button>
+                    </div>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right"></ul>
+        </div>
+
+    </div>
+
+    <div class="col-md-2">
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="collapse1 navbar-collapse1">
+                <ul class="nav nav-stacked" id="sideNav">
+ 
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </nav>
+    </div><!--/end left column-->
+
+    <div class="col-md-10">
+    	<ul class="bs-glyphicons" id="images">
+			 
+    	</ul>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.lazyload.js?r=2"></script>
+    <script src="fancybox/jquery.fancybox.js"></script>
+    <script src="flowplayer/flowplayer.js"></script>
+    <script src="js/script.js"></script>
+  </body>
+</html>

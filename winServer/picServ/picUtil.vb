@@ -228,6 +228,50 @@ Public Class picUtil
         Return output
     End Function
 
+
+    Public Shared Function getContentsOfFolder(ByVal QueryString As NameValueCollection) As String
+
+        Dim output As String = ""
+        Dim itemlist As New List(Of Dictionary(Of String, String))
+        Dim y As String = QueryString("Path").Replace("||", "\")
+
+        Util.log("Requested Query for: " & QueryString("Path"))
+
+        Using conn As New SQLiteConnection(db.getConnStr)
+            conn.Open()
+            Dim cmd = conn.CreateCommand()
+            cmd.CommandText = "SELECT * FROM Pictures where filepath = @Path ORDER BY FullName"
+            cmd.Parameters.Add(New SQLiteParameter("@Path", y))
+
+            Dim rst = cmd.ExecuteReader()
+            If rst.HasRows Then
+                While rst.Read()
+                    Dim d As New Dictionary(Of String, String)
+                    d.Add("sectionHeader", QueryString("t"))
+                    d.Add("image", "http://" & QueryString("HOST") & "/getFile/?key=" & My.Settings.APIKey & "&Path=" & Microsoft.JScript.GlobalObject.escape(rst("FullName")) & "&mode=thumbnail")
+                    d.Add("name", rst("FileName"))
+                    d.Add("Path", rst("FilePath"))
+                    If rst("FileName").ToString().ToLower().EndsWith(".mov") Then
+                        d.Add("Type", "Video")
+                    Else
+                        d.Add("Type", "Image")
+                    End If
+                    d.Add("DateCreated", picUtil.DateTimeToEpoch(rst("DateTaken")))
+                    d.Add("cachePath", Microsoft.JScript.GlobalObject.escape(rst("FullName")).ToLower())
+                    itemlist.Add(d)
+                    d = Nothing
+                End While
+                output = JsonConvert.SerializeObject(itemlist)
+            End If
+
+            rst.Close()
+            conn.Close()
+        End Using
+
+        Return output
+    End Function
+
+
     Public Shared Function runDynamicSQL(ByVal QueryString As NameValueCollection) As String
 
         Dim output As String = ""
@@ -272,6 +316,50 @@ Public Class picUtil
         Return output
     End Function
 
+    Public Shared Function getAllFolderList(ByVal QueryString As NameValueCollection) As String
+
+        Dim output As String = ""
+        Dim Folders As New List(Of Dictionary(Of String, String))
+
+        Using conn As New SQLiteConnection(db.getConnStr)
+            conn.Open()
+            Dim cmd = conn.CreateCommand()
+            cmd.CommandText = "SELECT * FROM folderProps order by FolderName"
+            Dim rst = cmd.ExecuteReader()
+            If rst.HasRows Then
+                While rst.Read()
+                    Dim d As New Dictionary(Of String, String)
+                    Dim p As String = rst("FolderName")
+                    If System.IO.Directory.Exists(p) Then
+                        Dim indexer As String = New DirectoryInfo(Path.GetDirectoryName(p & "\")).Name
+                        Dim peices As String() = p.Split("\")
+                        d.Add("Name", indexer)
+                        For i = UBound(peices) - 1 To 0 Step -1
+                            If i > 0 Then
+                                indexer = indexer & " " & peices(i)
+                            End If
+                        Next
+
+                        d.Add("Indexer", indexer)
+                        d.Add("FullPath", p)
+                        d.Add("QSPath", p.Replace("\", "||"))
+                        d.Add("DateModified", rst("DateModified"))
+                        Folders.Add(d)
+                    End If
+
+
+                End While
+                output = JsonConvert.SerializeObject(Folders)
+            End If
+
+            rst.Close()
+            conn.Close()
+        End Using
+
+        Return output
+    End Function
+
+
     Public Shared Function getBaseFolderList(ByVal QueryString As NameValueCollection) As String
 
         Dim output As String = ""
@@ -299,7 +387,7 @@ Public Class picUtil
                 Dim fileTypes As Dictionary(Of String, String) = picUtil.getAllowedTypes()
                 Dim thisExtension As String = Path.GetExtension(p).ToLower()
                 Dim newName As String = Path.GetFileNameWithoutExtension(p)
-                Dim deletedPath As String = picUtil.getCacheDirectory & "/.DeletedPics/"
+                Dim deletedPath As String = picUtil.getCacheDirectory.Replace("\base64img", "\") & ".DeletedPics\"
                 If Directory.Exists(deletedPath) = False Then
                     Directory.CreateDirectory(deletedPath)
                 End If
@@ -310,15 +398,19 @@ Public Class picUtil
                     newPath = deletedPath & newName & "_" & i & thisExtension
                 Loop
 
+
                 If fileTypes.ContainsKey(thisExtension) Then
                     Try
                         File.Move(p, newPath)
+                        db.ExecuteNonQuery("Delete from pictures where fullname = '" & p.Replace("\\", "\").Replace("\\", "\") & "'")
                         output = ("success")
                     Catch ex As Exception
                         output = (ex.Message)
                     End Try
-
                 End If
+            Else
+                db.ExecuteNonQuery("Delete from pictures where fullname = '" & p.Replace("\\", "\").Replace("\\", "\") & "'")
+                output = ("success")
             End If
         End If
 

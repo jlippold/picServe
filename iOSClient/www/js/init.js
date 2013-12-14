@@ -308,7 +308,7 @@ var init = {
 
 				ic.onRightButtonTap(function(idx) {
 					idx = parseInt(idx, 10);
-					console.log(idx);
+					//console.log(idx);
 					var del = init.urlFromPath(images[idx].Path, "deleteFile").URL;
 					images.splice(idx, 1);
 
@@ -429,7 +429,12 @@ var init = {
 					}
 				});
 				$("#vid").remove();
-				$("body").append("<video id='vid' style='visibility: hidden'><source src='" + videoPath + "'></video>");
+				if ( navigator.userAgent.match(/iPad/i) ) {
+					$("body").append("<video id='vid' style='' autoplay='autoplay' controls><source src='" + videoPath + "'></video>");
+				} else {
+					$("body").append("<video id='vid' style='visibility: hidden'><source src='" + videoPath + "'></video>");
+				}
+				
 				$("#vid").bind("error", function() {
 					util.doHud({
 						show: false
@@ -438,6 +443,7 @@ var init = {
 					util.doAlert("Error playing video");
 				});
 
+	
 				$("#vid").bind("webkitendfullscreen", function() {
 					util.doHud({
 						show: false
@@ -445,7 +451,16 @@ var init = {
 					$("#vid").remove();
 				});
 
-				$("#vid")[0].play();
+
+				if ( navigator.userAgent.match(/iPad/i) ) {
+					setTimeout(function(){ 
+						$("#vid")[0].webkitEnterFullScreen();
+						//$("#vid").remove();
+					}, 250);
+				} else {
+					$("#vid")[0].play();
+				}
+
 
 			}
 

@@ -426,8 +426,6 @@ Public Class picUtil
 
     Public Shared Function getPicList(ByVal d As List(Of String)) As String
 
-
-
         Dim mypics As New List(Of picList)
         Dim fileTypes As Dictionary(Of String, String) = getAllowedTypes()
         For Each fld As String In d
@@ -448,32 +446,42 @@ Public Class picUtil
                             r = Nothing
                         End If
                     Next
-                    For Each fl As String In System.IO.Directory.GetFiles(di.FullName)
-                        If (fileTypes.ContainsKey(Path.GetExtension(fl).ToLower())) AndAlso Left(Path.GetFileName(fl), 1) <> "." Then
-                            Dim r As New picList
-                            Dim dt As DateTime = Directory.GetCreationTime(fl)
 
-                            dt = GetDateTaken(fl, dt)
+                    Using conn As New SQLiteConnection(db.getConnStr)
+                        conn.Open()
+                        Dim cmd = conn.CreateCommand()
+                        cmd.CommandText = "SELECT * FROM Pictures where filepath = @Path ORDER BY DateTaken asc"
 
-                            Dim info As New FileInfo(fl)
+                        cmd.Parameters.Add(New SQLiteParameter("@Path", di.FullName.ToLower))
+                        Dim rst = cmd.ExecuteReader()
+                        If rst.HasRows Then
+                            While rst.Read()
 
-                            r.ItemName = Path.GetFileName(fl)
-                            r.ItemPath = fl
-                            r.Heading = dt.ToString("MMMM, yyyy")
-                            r.DateCreated = DateTimeToEpoch(dt)
-                            r.Extension = Path.GetExtension(fl).ToLower()
-                            If r.Extension = ".mov" Then
-                                r.ItemType = "Video"
-                            Else
-                                r.ItemType = "Image"
-                            End If
+                                Dim r As New picList
+                                Dim dt As DateTime = DateTime.Parse(rst("DateTaken"))
 
-                            r.FileSize = Util.BytesToString(info.Length)
+                                r.ItemName = Path.GetFileName(rst("filename"))
+                                r.ItemPath = rst("fullname")
+                                r.Heading = dt.ToString("MMMM, yyyy")
+                                r.DateCreated = DateTimeToEpoch(dt)
+                                r.Extension = Path.GetExtension(rst("filename")).ToLower()
+                                If r.Extension = ".mov" Then
+                                    r.ItemType = "Video"
+                                Else
+                                    r.ItemType = "Image"
+                                End If
 
-                            mypics.Add(r)
-                            r = Nothing
+                                r.FileSize = "1MB" 'Util.BytesToString(info.Length)
+
+                                mypics.Add(r)
+
+                            End While
+
                         End If
-                    Next
+
+                        rst.Close()
+                        conn.Close()
+                    End Using
                 End If
 
             Catch ex As Exception

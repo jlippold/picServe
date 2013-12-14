@@ -7,15 +7,13 @@
 @interface ImageCollection : CDVPlugin <UICollectionViewDelegate,UICollectionViewDataSource>{
 
 	CGRect _originalWebViewFrame;
-	NSMutableArray* _imageViewData;
+    NSMutableArray* _data;
 	NSString* _mainTableTitle;
 	CGFloat _mainTableHeight;
     CGFloat _offsetTop;
     NSMutableArray* _searchResults;
 	BOOL *isFiltered;
     BOOL *isEditing;
-    
-
 }
 
 @property (nonatomic, strong) UICollectionView *collectionView;

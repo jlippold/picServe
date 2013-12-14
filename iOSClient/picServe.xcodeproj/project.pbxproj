@@ -36,6 +36,7 @@
 		30A0434914DC770100060A13 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 30A0434614DC770100060A13 /* Localizable.strings */; };
 		30E1352710E2C1420031B30D /* Cordova.plist in Resources */ = {isa = PBXBuildFile; fileRef = 30E1352610E2C1420031B30D /* Cordova.plist */; };
 		30E5649213A7FCAF007403D8 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 30E5649113A7FCAF007403D8 /* CoreMedia.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		8503B9E3183A56BF00BD1CCA /* UIBAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8503B9E2183A56BF00BD1CCA /* UIBAlertView.m */; };
 		8524CA2117AB057400FE3662 /* ActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = 8524CA1817AB057300FE3662 /* ActionSheet.m */; };
 		8524CA2217AB057400FE3662 /* CDVStatusBarOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 8524CA1A17AB057300FE3662 /* CDVStatusBarOverlay.m */; };
 		8524CA2317AB057400FE3662 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 8524CA1C17AB057300FE3662 /* MBProgressHUD.m */; };
@@ -64,8 +65,10 @@
 		85677CD117EF3D620000F816 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 85677CD017EF3D620000F816 /* Settings.bundle */; };
 		85677CD417EF3F870000F816 /* applicationPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 85677CD317EF3F870000F816 /* applicationPreferences.m */; };
 		8578956917BFB99900A77B11 /* ImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8578956817BFB99900A77B11 /* ImageView.m */; };
-		857FD1DB180B527B007DEB17 /* video@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 857FD1DA180B527B007DEB17 /* video@2x.png */; };
 		85855F2717AF26B400AF3D3B /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85855F2617AF26B400AF3D3B /* Social.framework */; };
+		859715651837FE360026230E /* video@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 859715641837FE360026230E /* video@2x.png */; };
+		859715671837FF5A0026230E /* placeholder@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 859715661837FF5A0026230E /* placeholder@2x.png */; };
+		85971569183801940026230E /* placeholderVideo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 85971568183801940026230E /* placeholderVideo@2x.png */; };
 		85CDAB9F17B53D87005F0EF5 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 85CDAB9517B53D87005F0EF5 /* ioapi.c */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		85CDABA017B53D87005F0EF5 /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = 85CDAB9717B53D87005F0EF5 /* mztools.c */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		85CDABA117B53D87005F0EF5 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 85CDAB9917B53D87005F0EF5 /* unzip.c */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
@@ -147,6 +150,8 @@
 		30E1352610E2C1420031B30D /* Cordova.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Cordova.plist; path = ../Cordova.plist; sourceTree = "<group>"; };
 		30E5649113A7FCAF007403D8 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		32CA4F630368D1EE00C91783 /* picServe-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "picServe-Prefix.pch"; sourceTree = "<group>"; };
+		8503B9E1183A56BF00BD1CCA /* UIBAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIBAlertView.h; sourceTree = "<group>"; };
+		8503B9E2183A56BF00BD1CCA /* UIBAlertView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIBAlertView.m; sourceTree = "<group>"; };
 		8524CA1717AB057300FE3662 /* ActionSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActionSheet.h; sourceTree = "<group>"; };
 		8524CA1817AB057300FE3662 /* ActionSheet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActionSheet.m; sourceTree = "<group>"; };
 		8524CA1917AB057300FE3662 /* CDVStatusBarOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDVStatusBarOverlay.h; sourceTree = "<group>"; };
@@ -188,8 +193,10 @@
 		85677CD317EF3F870000F816 /* applicationPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = applicationPreferences.m; sourceTree = "<group>"; };
 		8578956717BFB99900A77B11 /* ImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageView.h; sourceTree = "<group>"; };
 		8578956817BFB99900A77B11 /* ImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageView.m; sourceTree = "<group>"; };
-		857FD1DA180B527B007DEB17 /* video@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "video@2x.png"; path = "../../../../Desktop/video@2x.png"; sourceTree = "<group>"; };
 		85855F2617AF26B400AF3D3B /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
+		859715641837FE360026230E /* video@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "video@2x.png"; sourceTree = "<group>"; };
+		859715661837FF5A0026230E /* placeholder@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "placeholder@2x.png"; sourceTree = "<group>"; };
+		85971568183801940026230E /* placeholderVideo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "placeholderVideo@2x.png"; sourceTree = "<group>"; };
 		85CDAB9417B53D87005F0EF5 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt.h; sourceTree = "<group>"; };
 		85CDAB9517B53D87005F0EF5 /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
 		85CDAB9617B53D87005F0EF5 /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
@@ -279,6 +286,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				8503B9E1183A56BF00BD1CCA /* UIBAlertView.h */,
+				8503B9E2183A56BF00BD1CCA /* UIBAlertView.m */,
 				85D95A7217F8754C006904FF /* OBGradientView.h */,
 				85D95A7317F8754C006904FF /* OBGradientView.m */,
 				85D95A6F17F87505006904FF /* MPNotificationView.h */,
@@ -360,9 +369,11 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				857FD1DA180B527B007DEB17 /* video@2x.png */,
 				8541AC2D17B67B18001ED535 /* deleteButton@2x.png */,
 				8541AC2E17B67B18001ED535 /* deleteButtonPressed@2x.png */,
+				859715661837FF5A0026230E /* placeholder@2x.png */,
+				85971568183801940026230E /* placeholderVideo@2x.png */,
+				859715641837FE360026230E /* video@2x.png */,
 				30A0434214DC770100060A13 /* de.lproj */,
 				30A0434514DC770100060A13 /* se.lproj */,
 				1F766FDB13BBADB100FB74C0 /* en.lproj */,
@@ -643,12 +654,14 @@
 				854E457817AD7D010003B6AB /* Icon-72.png in Resources */,
 				854E457917AD7D010003B6AB /* Icon-72@2x.png in Resources */,
 				854E457A17AD7D010003B6AB /* Icon-Small-50.png in Resources */,
+				859715671837FF5A0026230E /* placeholder@2x.png in Resources */,
 				854E457B17AD7D010003B6AB /* Icon-Small-50@2x.png in Resources */,
-				857FD1DB180B527B007DEB17 /* video@2x.png in Resources */,
+				859715651837FE360026230E /* video@2x.png in Resources */,
 				854E457C17AD7D010003B6AB /* Icon-Small.png in Resources */,
 				854E457D17AD7D010003B6AB /* Icon-Small@2x.png in Resources */,
 				854E457E17AD7D010003B6AB /* Icon.png in Resources */,
 				854E457F17AD7D010003B6AB /* Icon@2x.png in Resources */,
+				85971569183801940026230E /* placeholderVideo@2x.png in Resources */,
 				85DA162A17AF2EE400F8B2B1 /* DMResizerViewController.xib in Resources */,
 				85DA162B17AF2EE400F8B2B1 /* instagram.png in Resources */,
 				85DA162C17AF2EE400F8B2B1 /* instagram@2x.png in Resources */,
@@ -721,6 +734,7 @@
 				8541AC3517B6EF5C001ED535 /* CVHeader.m in Sources */,
 				85D95A6E17F7BF90006904FF /* ImageSync.m in Sources */,
 				85D95A6917F7BC74006904FF /* ASIInputStream.m in Sources */,
+				8503B9E3183A56BF00BD1CCA /* UIBAlertView.m in Sources */,
 				8578956917BFB99900A77B11 /* ImageView.m in Sources */,
 				854F501317C1905B009B00FB /* NativeTable.m in Sources */,
 				85677CD417EF3F870000F816 /* applicationPreferences.m in Sources */,

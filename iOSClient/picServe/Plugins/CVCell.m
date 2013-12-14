@@ -15,7 +15,13 @@
     
     self = [super initWithFrame:frame];
     
+    
+    
+
+    
     if (self) {
+        
+
         
         // Initialization code
         NSArray *arrayOfViews = [[NSBundle mainBundle] loadNibNamed:@"CView" owner:self options:nil];
@@ -29,6 +35,8 @@
         }
         
         self = [arrayOfViews objectAtIndex:0];
+        
+
         
     }
     

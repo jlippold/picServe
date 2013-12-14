@@ -4,10 +4,9 @@
 #import "CVHeader.h"
 #import <QuartzCore/QuartzCore.h>
 #import "SSZipArchive.h"
-
 #import "ASIHTTPRequest.h"
 #import "ASINetworkQueue.h"
-
+#import "UIBAlertView.h"
 
 @implementation ImageCollection;
 @synthesize collectionView = _collectionView;
@@ -17,9 +16,8 @@
 @synthesize navBar = _navbar;
 @synthesize networkQueue;
 
-
 static dispatch_queue_t concurrentQueue = NULL;
-
+static dispatch_queue_t imageQueue = NULL;
 
 -(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
 {
@@ -41,8 +39,7 @@ static dispatch_queue_t concurrentQueue = NULL;
     [[self networkQueue] setQueueDidFinishSelector:@selector(queueFinished:)];
     [[self networkQueue] setShouldCancelAllRequestsOnFailure:NO];
     [self networkQueue].maxConcurrentOperationCount = 2;
-    
-    
+
     CGRect navBarFrame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, 44.0);
     _navbar = [[UINavigationBar alloc] initWithFrame:navBarFrame];
     
@@ -91,7 +88,7 @@ static dispatch_queue_t concurrentQueue = NULL;
     if ([[options objectForKey:@"zipcache"] isEqualToString:@""] ) {
         
     } else {
-        //NSLog(@"ZIP!");
+        /*
         dispatch_queue_t queue = dispatch_get_global_queue(0,0);
         dispatch_async(queue, ^{
             NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,  NSUserDomainMask, YES);
@@ -107,6 +104,7 @@ static dispatch_queue_t concurrentQueue = NULL;
                 //NSLog(@"unZIPPED!");
             }
         });
+         */
     }
 
     
@@ -147,86 +145,111 @@ static dispatch_queue_t concurrentQueue = NULL;
     
     isEditing = NO;
     
-
 	self.webView.superview.autoresizesSubviews = YES;
 	[self.webView.superview addSubview:_collectionView];
     
 }
 
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath; {
+    if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ) {
+        //return CGSizeMake(160, 160);
+        return CGSizeMake(220, 220);
+    } else {
+        return CGSizeMake(102, 102);
+    }
+}
+
+
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    if (!decelerate) {
+        [self loadImagesForOnscreenRows];
+    } else {
+        [self cancelTimer];
+    }
+}
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    [self loadImagesForOnscreenRows];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    [self cancelTimer];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+   [self loadImagesForOnscreenRows];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    [self cancelTimer];
+}
+
+- (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
+{
+    [self loadImagesForOnscreenRows];
+}
+
+
 - (void)setImageViewData:(NSArray*)arguments withDict:(NSDictionary*)options
 {
-	_imageViewData = [[arguments objectAtIndex:0] mutableCopy];
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,  NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+	NSMutableArray *JSArray = [[arguments objectAtIndex:0] mutableCopy];
+    /* translate JS array to CollectionView Array */
+    NSString *loopedHeader = @"";
+    NSMutableArray *tmpList = [[NSMutableArray alloc] init];
+    _data = [[NSMutableArray alloc] init];
+    for(int i = 0; i < [JSArray count]; i++ ) {
+        NSString *thisHeader = [[JSArray objectAtIndex:i] valueForKey:@"sectionHeader"];
+        if ( ![thisHeader isEqualToString:loopedHeader]) {
+            if (![loopedHeader isEqualToString:@""]) {
+                NSMutableArray *toCopy = [[NSMutableArray alloc] initWithArray: tmpList];
+                [_data addObject:toCopy];
+            }
+            loopedHeader = thisHeader;
+            [tmpList removeAllObjects];
+            tmpList = [[NSMutableArray alloc] init];
+        }
+        
+        //Add in other info about the item
+        [[JSArray objectAtIndex:i] setObject:[NSString stringWithFormat:@"%d", i] forKey:@"JSIndex"];
+        [[JSArray objectAtIndex:i] setObject:@"" forKey:@"Base64"];
+        [[JSArray objectAtIndex:i] setObject:[documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.cache", [[JSArray objectAtIndex:i] valueForKey:@"cachePath"] ]] forKey:@"cachedFile"];
+        
+        [tmpList addObject:[JSArray objectAtIndex:i]];
+    }
+    
+    if (![loopedHeader isEqualToString:@""]) {
+        NSMutableArray *toCopy = [[NSMutableArray alloc] initWithArray: tmpList];
+        [_data addObject:toCopy];
+    }
 	[_collectionView reloadData];
 	
 }
 
-
 - (UICollectionViewCell *)collectionView:(UICollectionView *)cv cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+   
 
-    /* pull from data source */
-	int section = indexPath.section;
-    int row = indexPath.row;
-    
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
-    
-    int counter = 0;
-    int rowCounter = 0;
-    int sectionRowCounter = 0;
-    int actualRow = 0;
-    NSString *loopedHeader = @"";
-    BOOL isCurrentSection = false;
-    
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            isCurrentSection = false;
-            if (counter == section) {
-                isCurrentSection = true;
-            }
-            counter++;
-        }
-        
-        if (isCurrentSection) {
-            if (sectionRowCounter == row ) {
-                actualRow = rowCounter;
-            }
-            sectionRowCounter++;
-        }
-        rowCounter++;
-    }
-
-    
-    NSDictionary *item = [_imageViewData objectAtIndex:actualRow];
-    if (isFiltered) {
-        item = [_searchResults objectAtIndex:actualRow];
-    }
-    
-    /* end pull from data source */
-    
     CVCell *cell = (CVCell *)[cv dequeueReusableCellWithReuseIdentifier:@"cvCell" forIndexPath:indexPath];
-    if (cell == nil) {
-        cell = [[CVCell alloc] init];
-    }
-    cell.tag = actualRow;
-    
-    
+    NSMutableArray *sectionData = [_data objectAtIndex:indexPath.section];
+
+    NSDictionary *item = [sectionData objectAtIndex:indexPath.row];
+    NSString *cachePath = [item valueForKey:@"cachePath"];
     NSString *url = [item valueForKey:@"image"];
     
-    NSString *cachePath = [item valueForKey:@"cachePath"];
-
-    cell.imageView.image = [UIImage imageNamed:@"www/img/photo.png"];
+    [cell.titleLabel setText:[item valueForKey:@"name"]];
+    cell.titleLabel.shadowColor = [UIColor blackColor];
+    cell.titleLabel.shadowOffset = CGSizeMake(0,-0.4);
     
-    if ([cachePath hasSuffix:@".mov"]) {
-        [cell.videoOverlay setHidden:NO];
-    } else {
-        [cell.videoOverlay setHidden:YES];
-    }
+    [cell.deleteButton setHidden:YES];
+    [cell.videoOverlay setHidden:YES];
     
     if (![url hasPrefix:@"http"]) {
         [cell.imageView.layer setBorderColor: [[UIColor clearColor] CGColor]];
@@ -234,137 +257,134 @@ static dispatch_queue_t concurrentQueue = NULL;
         cell.imageView.image = [UIImage imageNamed:[item valueForKey:@"image"]];
         [cell.deleteButton setHidden:YES];
     } else {
+        
         [cell.imageView.layer setBorderColor: [[UIColor whiteColor] CGColor]];
         [cell.imageView.layer setBorderWidth: 2.0];
-        if (isEditing) {
-            [cell.deleteButton setHidden:NO];
-        }else{
-            [cell.deleteButton setHidden:YES];
-        }
         
         //check if the cached version exists
-        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,  NSUserDomainMask, YES);
-        NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSString *cachedFile = [documentsDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.cache", cachePath ]];
-        
-        BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:cachedFile];
-        if (fileExists) {
-            NSString *content = [NSString stringWithContentsOfFile:cachedFile encoding:NSUTF8StringEncoding error:nil];
-            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:content]];
-            cell.imageView.image = [UIImage imageWithData:imageData];
-            [cell setNeedsLayout];
-        } else {
-            BOOL needsKickStart = NO;
-            if ([[self networkQueue] requestsCount] == 0) {
-                needsKickStart = YES;
-            }
-
-            ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[[NSURL alloc] initWithString:url]];
-            NSDictionary *reqInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-                                     [NSString stringWithFormat:@"%d",row], @"row",
-                                     [NSString stringWithFormat:@"%d",section], @"section",
-                                    cachedFile, @"cachedFile",
-                                     nil];
-            
-            [request setUserInfo:reqInfo];
-            request.tag = actualRow;
-            [[self networkQueue] addOperation:request];
-  
-            if (needsKickStart) {
-                [[self networkQueue] go];
-            }
-            
-            
-            /*
-            dispatch_queue_t concurrentQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH,  0ul);
-            dispatch_async(concurrentQueue, ^{
-                NSData *image = [[NSData alloc] initWithContentsOfURL:[[NSURL alloc] initWithString:url]];
-                NSData* data = UIImagePNGRepresentation([UIImage imageWithData:image]);
-                NSString *strEncoded = [Base64 encode:data];
-                if (![strEncoded isEqualToString:@""]) {
-                    strEncoded = [@"data:image/jpg;base64," stringByAppendingString:strEncoded];
-                    [strEncoded writeToFile:cachedFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
-                    NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:strEncoded]];
-                    
-                    dispatch_async(dispatch_get_main_queue(),^{
-                        if (indexPath.row > 0 && indexPath.section > 0) {
-                            CVCell *cell1 = (CVCell *)[cv cellForItemAtIndexPath:indexPath];
-                            if (cell1) {
-                                cell.imageView.image = [UIImage imageWithData:imageData];
-                                [cell setNeedsLayout];
-                                [_collectionView reloadItemsAtIndexPaths:@[indexPath]];
-                            }
-                        }
-                    });
-                    
+        if ([[item valueForKey:@"Base64"] isEqualToString:@""]) {
+            BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:[item valueForKey:@"cachedFile"]];
+            if (fileExists) {
+                NSString *content = [NSString stringWithContentsOfFile:[item valueForKey:@"cachedFile"] encoding:NSUTF8StringEncoding error:nil];
+                [item setValue:content forKey:@"Base64"];
+                NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:content]];
+                cell.imageView.image = [UIImage imageWithData:imageData];
+                if ([cachePath hasSuffix:@".mov"]) {
+                    [cell.videoOverlay setHidden:NO];
                 }
-            });
-             */
-
+            } else {
+                if ([cachePath hasSuffix:@".mov"]) {
+                    cell.imageView.image = [UIImage imageNamed:@"placeholderVideo.png"];
+                } else {
+                    cell.imageView.image = [UIImage imageNamed:@"placeholder.png"];
+                }
+            }
+        } else {
+            NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:[item valueForKey:@"Base64"]]];
+            cell.imageView.image = [UIImage imageWithData:imageData];
+            if ([cachePath hasSuffix:@".mov"]) {
+                [cell.videoOverlay setHidden:NO];
+            }
         }
+
         
     }
-
-    [cell.titleLabel setText:[item valueForKey:@"name"]];
     
-    cell.titleLabel.shadowColor = [UIColor blackColor];
-    cell.titleLabel.shadowOffset = CGSizeMake(0,-0.4);
-    
-
     [cell.deleteButton addTarget:self action:@selector(onDelete:event:) forControlEvents:UIControlEventTouchUpInside];
     
     return cell;
+    
+}
+
+NSTimer *timer;
+- (void) loadImagesForOnscreenRows {
+    
+    [self cancelTimer];
+    timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(timerComplete:) userInfo:nil repeats:NO];
+}
+
+- (void) cancelTimer {
+    [timer invalidate];
+    timer = nil;
+    [[self networkQueue] cancelAllOperations];
+}
+
+- (void)timerComplete:(id)sender
+{
+    
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul);
+    dispatch_async(queue, ^{
+        
+        for (CVCell *cell in _collectionView.visibleCells) {
+            NSIndexPath *indexPath = [_collectionView indexPathForCell:cell];
+            if ( [[_collectionView indexPathsForVisibleItems] containsObject:indexPath]  ) {
+            } else {
+                continue;
+            }
+            
+            NSDictionary *item =[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+            NSString *url = [item valueForKey:@"image"];
+
+            if ([url hasPrefix:@"http"] && [[item valueForKey:@"Base64"] isEqualToString:@""] ) {
+                
+                int section = indexPath.section;
+                int row = indexPath.row;
+                
+                BOOL needsKickStart = NO;
+                if ([[self networkQueue] requestsCount] == 0) {
+                    needsKickStart = YES;
+                }
+                
+                ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[[NSURL alloc] initWithString:url]];
+                NSDictionary *reqInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                         [NSString stringWithFormat:@"%d",row], @"row",
+                                         [NSString stringWithFormat:@"%d",section], @"section",
+                                         [item valueForKey:@"cachedFile"], @"cachedFile",
+                                         nil];
+                
+                [request setUserInfo:reqInfo];
+                [[self networkQueue] addOperation:request];
+                
+                if (needsKickStart) {
+                    [[self networkQueue] go];
+                }
+                
+            }
+            
+        }
+    });
+
+}
+
+- (void)requestFinished:(ASIHTTPRequest *)request
+{
+    NSString *row = [[request userInfo] valueForKey:@"row"] ;
+    NSString *section = [[request userInfo] valueForKey:@"section"];
+    NSString *cachedFile = [[request userInfo] valueForKey:@"cachedFile"];
+    NSData *data = UIImagePNGRepresentation([UIImage imageWithData:[request responseData]]);
+    NSString *strEncoded = [Base64 encode:data];
+    
+    if (![strEncoded isEqualToString:@""]) {
+        strEncoded = [@"data:image/jpg;base64," stringByAppendingString:strEncoded];
+        [strEncoded writeToFile:cachedFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        NSIndexPath *IP = [NSIndexPath indexPathForRow:[row intValue] inSection:[section intValue]];
+        NSDictionary *item =[[_data objectAtIndex:[section intValue]] objectAtIndex:[row intValue]];
+        [item setValue:strEncoded forKey:@"Base64"];
+        if ( [[_collectionView indexPathsForVisibleItems] containsObject:IP] ) {
+            [_collectionView reloadItemsAtIndexPaths:@[IP]];
+        }
+        
+    }
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    //NSLog(@"do");
-    
     if (isEditing) {
         return;
     }
     
-	int section = indexPath.section;
-    int row = indexPath.row;
+	NSDictionary *item =[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
     
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
-    
-    int counter = 0;
-    int rowCounter = 0;
-    int sectionRowCounter = 0;
-    int actualRow = 0;
-    NSString *loopedHeader = @"";
-    BOOL isCurrentSection = false;
-    
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            isCurrentSection = false;
-            if (counter == section) {
-                isCurrentSection = true;
-            }
-            counter++;
-        }
-        
-        if (isCurrentSection) {
-            if (sectionRowCounter == row ) {
-                actualRow = rowCounter;
-                if (isFiltered) {
-                    //we have the searched item, but we need to pull the original index
-                    actualRow = [[[tmp objectAtIndex:i] objectForKey:@"index"] intValue];
-                }
-            }
-            sectionRowCounter++;
-        }
-        rowCounter++;
-    }
-    
-    NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.ImageCollection._onImageViewRowSelect(%d);", actualRow];
+    NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.ImageCollection._onImageViewRowSelect(%@);", [item valueForKey:@"JSIndex"]];
     [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
 }
 
@@ -375,37 +395,17 @@ static dispatch_queue_t concurrentQueue = NULL;
     
     UILabel *myLabel = (UILabel *)[header viewWithTag:1];
     if (!myLabel) {
-        myLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 320, 26)];
+        myLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, [_collectionView bounds].size.width, 26)];
         myLabel.tag = 1;
         [myLabel setBackgroundColor:[[UIColor blackColor] colorWithAlphaComponent:0.5f]];
         [myLabel setFont:[UIFont boldSystemFontOfSize:18.0f]];
         myLabel.textColor = [UIColor whiteColor];
         myLabel.shadowColor = [UIColor blackColor];
         myLabel.shadowOffset = CGSizeMake(0,1);
-        myLabel.opaque = YES;
         [myLabel setOpaque:YES];
     }
-    
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
-    int counter = -1;
-    NSString *loopedHeader = @"";
-    NSString *retVal = @"";
-    
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            counter++;
-        }
-        if (indexPath.section == counter) {
-            retVal = thisHeader;
-        }
-    }
+
+    NSString *retVal = [[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row] valueForKey:@"sectionHeader"];
     
     [myLabel setText:[NSString stringWithFormat:@"    %@", retVal]];
     [header addSubview:myLabel];
@@ -413,59 +413,11 @@ static dispatch_queue_t concurrentQueue = NULL;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView: (UICollectionView *)collectionView {
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
-    int counter = 1;
-    
-    if ([tmp count] == 0) {
-        return 0;
-    }
-    NSString *loopedHeader = [[tmp objectAtIndex:0] valueForKey:@"sectionHeader"];
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            counter++;
-        }
-    }
-    //NSLog(@"Total Sections: %d", counter);
-    return counter;
+    return [_data count];
 }
 
 - (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
-    
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
-    int counter = 0;
-    int rowsInSection = 0;
-    NSString *loopedHeader = @"";
-    BOOL isCurrentSection = false;
-    
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            isCurrentSection = false;
-            if (counter == section) {
-                isCurrentSection = true;
-            }
-            counter++;
-        }
-        
-        if (isCurrentSection) {
-            rowsInSection++;
-        }
-    }
-    //NSLog(@"Section: %d Count: %d", section, rowsInSection);
-    return rowsInSection;
+    return [[_data objectAtIndex:section] count];
 }
 
 
@@ -482,15 +434,7 @@ static dispatch_queue_t concurrentQueue = NULL;
 	
 	_originalWebViewFrame = self.webView.frame;
 	
-	CGRect mainTableFrame, CDWebViewFrame;
-	
-	CDWebViewFrame = CGRectMake(
-                                _originalWebViewFrame.origin.x,
-                                _originalWebViewFrame.origin.y,
-                                _originalWebViewFrame.size.width,
-                                _originalWebViewFrame.size.height - _mainTableHeight
-                                );
-	
+	CGRect mainTableFrame;
 	mainTableFrame = CGRectMake(
                                 _originalWebViewFrame.origin.x,
                                 _originalWebViewFrame.origin.y + 44.0,
@@ -576,66 +520,26 @@ static dispatch_queue_t concurrentQueue = NULL;
     NSSet *touches = [event allTouches];
     UITouch *touch = [touches anyObject];
     CGPoint currentTouchPosition = [touch locationInView:_collectionView];
-    NSIndexPath *p = [_collectionView indexPathForItemAtPoint: currentTouchPosition];
-    int row = p.row;
-	int section = p.section;
+    NSIndexPath *indexPath = [_collectionView indexPathForItemAtPoint: currentTouchPosition];
     
-    NSMutableArray *tmp = [[NSMutableArray alloc] init];
-    if (isFiltered) {
-        tmp = _searchResults.copy;
-    } else {
-        tmp = _imageViewData.copy;
-    }
+	NSDictionary *item =[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+    int actualRow = [[item valueForKey:@"JSIndex"] intValue];
+
+    UIBAlertView *alert = [[UIBAlertView alloc] initWithTitle:@"picServe" message:@"Are you sure you want to delete?"cancelButtonTitle:@"Delete" otherButtonTitles:@"Cancel",nil];
     
-    int counter = 0;
-    int rowCounter = 0;
-    int sectionRowCounter = 0;
-    int actualRow = 0;
-    NSString *loopedHeader = @"";
-    BOOL isCurrentSection = false;
-    
-    for(int i = 0; i < [tmp count]; i++ ) {
-        NSString *thisHeader = [[tmp objectAtIndex:i] valueForKey:@"sectionHeader"];
-        if ( ![thisHeader isEqualToString:loopedHeader]) {
-            loopedHeader = thisHeader;
-            isCurrentSection = false;
-            if (counter == section) {
-                isCurrentSection = true;
-            }
-            counter++;
+    [alert showWithDismissHandler:^(NSInteger selectedIndex, BOOL didCancel) {
+        if (didCancel) {
+            NSLog(@"User cancelled");
+            return;
         }
-        
-        if (isCurrentSection) {
-            if (sectionRowCounter == row ) {
-                actualRow = rowCounter;
-                if (isFiltered) {
-                    //we have the searched item, but we need to pull the original index
-                    actualRow = [[[tmp objectAtIndex:i] objectForKey:@"index"] intValue];
-                }
-            }
-            sectionRowCounter++;
+        if (selectedIndex == 0 ) {
+            NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.ImageCollection._onRightButtonTap(%d);", actualRow];
+            [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
+            [[_data objectAtIndex:indexPath.section] removeObject:item];
+            [_collectionView reloadData];
         }
-        rowCounter++;
-    }
-    
-    
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"picServe" message:@"Are you sure you want to delete?" delegate:self cancelButtonTitle:@"Delete" otherButtonTitles:@"Cancel",nil];
-    [alert setAlertViewStyle:UIAlertViewStyleDefault];
-    alert.tag = actualRow;
-    [alert show];
-    
+    }];
 
-}
-
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    if (buttonIndex == 0 ) {
-        NSString * jsCallBack = [NSString stringWithFormat:@"window.plugins.ImageCollection._onRightButtonTap(%d);", alertView.tag];
-        [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];
-        [_imageViewData removeObjectAtIndex:alertView.tag];
-        [_collectionView reloadData];
-    }
 }
 
 -(void)fadeIn
@@ -660,6 +564,7 @@ static dispatch_queue_t concurrentQueue = NULL;
                      }
                      completion:^(BOOL finished){
                          [self.webView stringByEvaluatingJavaScriptFromString:@"window.plugins.ImageCollection._onTableShowComplete();"];
+                         [self loadImagesForOnscreenRows];
                      }];
     
 }
@@ -709,40 +614,21 @@ static dispatch_queue_t concurrentQueue = NULL;
 }
 
 
-- (void)requestFinished:(ASIHTTPRequest *)request
-{
-    NSString *row = [[request userInfo] valueForKey:@"row"] ;
-    NSString *section = [[request userInfo] valueForKey:@"section"];
-    NSString *cachedFile = [[request userInfo] valueForKey:@"cachedFile"];
-    NSData *data = UIImagePNGRepresentation([UIImage imageWithData:[request responseData]]);
-    NSString *strEncoded = [Base64 encode:data];
 
-    if (![strEncoded isEqualToString:@""]) {
-        strEncoded = [@"data:image/jpg;base64," stringByAppendingString:strEncoded];
-        [strEncoded writeToFile:cachedFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:strEncoded]];
-        NSIndexPath *IP = [NSIndexPath indexPathForRow:[row intValue] inSection:[section intValue]];
-        CVCell *cell1 = (CVCell *)[_collectionView cellForItemAtIndexPath:IP];
-        if (cell1) {
-            cell1.imageView.image = [UIImage imageWithData:imageData];
-            [cell1 setNeedsLayout];
-            [_collectionView reloadItemsAtIndexPaths:@[IP]];
-        }
-    }
-}
 
 - (void)requestFailed:(ASIHTTPRequest *)request
 {
 
     //... Handle failure
     //set image to whatever instead..?
-    //NSLog(@"Request failed");
+    NSLog(@"Request failed");
 }
 
 
 - (void)queueFinished:(ASINetworkQueue *)queue
 {
-    //NSLog(@"Queue finished");
+     NSLog(@"queue Done!");
+   // [_collectionView reloadData];
 }
 
 @end

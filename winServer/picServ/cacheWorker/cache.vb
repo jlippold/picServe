@@ -349,7 +349,11 @@ Public Class cache
         Dim output As String = "("
         output &= "'" & sql_safe(fileName) & "', "
         output &= "'" & dt.ToString("yyyy-MM-dd HH:mm:ss") & "', "
-        output &= "'" & sql_safe(getShellVariable(fileName, "Dimensions")) & "', "
+        If fileName.EndsWith("mov") Then
+            output &= "'" & sql_safe(Util.BytesToString(My.Computer.FileSystem.GetFileInfo(fileName).Length)) & "', "
+        Else
+            output &= "'" & sql_safe(getShellVariable(fileName, "Dimensions")) & "', "
+        End If
         output &= "'" & sql_safe(getShellVariable(fileName, "Camera")) & "', "
         output &= "'" & sql_safe(Path.GetFileName(fileName)) & "', "
         output &= "'" & sql_safe(Path.GetDirectoryName(fileName)) & "'"

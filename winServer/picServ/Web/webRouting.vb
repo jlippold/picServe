@@ -86,53 +86,27 @@ Public Class webRouting
 
 
     Public Shared Sub serveFile(ByVal QueryString As NameValueCollection, response As HttpListenerResponse, Optional ByVal range As String = "")
-        Dim output As String = ""
-        Dim p As String = QueryString("Path")
-        p = p.Replace("||", "/")
-        If picUtil.isValidPath(p) AndAlso p <> "" Then
-            If File.Exists(p) Then
-                Dim fileTypes As Dictionary(Of String, String) = picUtil.getAllowedTypes()
-                Dim thisExtension As String = Path.GetExtension(p).ToLower()
-                If fileTypes.ContainsKey(thisExtension) Then
 
-                    If QueryString("mode") = "" And fileTypes(thisExtension).Contains("image") Then
-                        Util.log("Requested Full Size Image: " & p)
-                        WebServer.writeImageFromPath(p, response)
-                        Exit Sub
-                    End If
+        Try
+            Dim output As String = ""
+            Dim p As String = QueryString("Path")
+            p = p.Replace("||", "/")
+            If picUtil.isValidPath(p) AndAlso p <> "" Then
+                If File.Exists(p) Then
+                    Dim fileTypes As Dictionary(Of String, String) = picUtil.getAllowedTypes()
+                    Dim thisExtension As String = Path.GetExtension(p).ToLower()
+                    If fileTypes.ContainsKey(thisExtension) Then
 
-                    If QueryString("mode") = "rotate" And fileTypes(thisExtension).Contains("image") Then
-                        Try
-                            Dim oldPic As New System.Drawing.Bitmap(p)
-                            Dim newPic As System.Drawing.Bitmap = imaging.FixRotatation(oldPic)
-                            oldPic.Dispose()
+                        If QueryString("mode") = "" And fileTypes(thisExtension).Contains("image") Then
+                            Util.log("Requested Full Size Image: " & p)
+                            WebServer.writeImageFromPath(p, response)
+                            Exit Sub
+                        End If
 
-                            Dim byteArray As Byte() = New Byte(-1) {}
-                            Using stream As New MemoryStream()
-                                newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
-                                stream.Close()
-                                byteArray = stream.ToArray()
-                            End Using
-                            WebServer.writeImageFromByteArray(byteArray, response)
-                            newPic.Dispose()
-                        Catch ex As Exception
-                            'WebServer.writeText(ex.Message, response)
-                        End Try
-                        Exit Sub
-                    End If
-
-                    If QueryString("mode") = "thumbnail" And fileTypes(thisExtension).Contains("image") Then
-                        Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
-                        cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
-                        If File.Exists(cache) Then
-                            Dim base64 As String = File.ReadAllText(cache)
-                            base64 = base64.Substring(22)
-                            Dim binaryData() As Byte = System.Convert.FromBase64String(base64)
-                            WebServer.writeBinary(binaryData, response, "text/html")
-                        Else
+                        If QueryString("mode") = "rotate" And fileTypes(thisExtension).Contains("image") Then
                             Try
                                 Dim oldPic As New System.Drawing.Bitmap(p)
-                                Dim newPic As System.Drawing.Bitmap = imaging.resize(oldPic, 200, 200)
+                                Dim newPic As System.Drawing.Bitmap = imaging.FixRotatation(oldPic)
                                 oldPic.Dispose()
 
                                 Dim byteArray As Byte() = New Byte(-1) {}
@@ -146,57 +120,92 @@ Public Class webRouting
                             Catch ex As Exception
                                 'WebServer.writeText(ex.Message, response)
                             End Try
+                            Exit Sub
                         End If
-                        Exit Sub
+
+                        If QueryString("mode") = "thumbnail" And fileTypes(thisExtension).Contains("image") Then
+                            Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
+                            cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
+                            If File.Exists(cache) Then
+                                Dim base64 As String = File.ReadAllText(cache)
+                                base64 = base64.Substring(22)
+                                Dim binaryData() As Byte = System.Convert.FromBase64String(base64)
+                                WebServer.writeBinary(binaryData, response, "text/html")
+                            Else
+                                Try
+                                    Dim oldPic As New System.Drawing.Bitmap(p)
+                                    Dim newPic As System.Drawing.Bitmap = imaging.resize(oldPic, 200, 200)
+                                    oldPic.Dispose()
+
+                                    Dim byteArray As Byte() = New Byte(-1) {}
+                                    Using stream As New MemoryStream()
+                                        newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                        stream.Close()
+                                        byteArray = stream.ToArray()
+                                    End Using
+                                    WebServer.writeImageFromByteArray(byteArray, response)
+                                    newPic.Dispose()
+                                Catch ex As Exception
+                                    'WebServer.writeText(ex.Message, response)
+                                End Try
+                            End If
+                            Exit Sub
+                        End If
+
                     End If
 
-                End If
+                    If thisExtension = ".zip" Then
+                        WebServer.writeFileFromPath(p, response, fileTypes(thisExtension))
+                    End If
 
-                If thisExtension = ".zip" Then
-                    WebServer.writeFileFromPath(p, response, fileTypes(thisExtension))
-                End If
-
-                If thisExtension = ".mov" Then
-                    If QueryString("mode") = "thumbnail" Then
-                        Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
-                        cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
-                        If File.Exists(cache) Then
-                            Dim base64 As String = File.ReadAllText(cache)
-                            base64 = base64.Substring(22)
-                            Dim binaryData() As Byte = System.Convert.FromBase64String(base64)
-                            WebServer.writeBinary(binaryData, response, "text/html")
+                    If thisExtension = ".mov" Then
+                        If QueryString("mode") = "thumbnail" Then
+                            Dim cache As String = picUtil.getWebName(p.Replace("\\", "\")).ToLower()
+                            cache = picUtil.getCacheDirectory() & "\" & cache & ".cache"
+                            If File.Exists(cache) Then
+                                Dim base64 As String = File.ReadAllText(cache)
+                                base64 = base64.Substring(22)
+                                Dim binaryData() As Byte = System.Convert.FromBase64String(base64)
+                                WebServer.writeBinary(binaryData, response, "text/html")
+                            Else
+                                Try
+                                    Dim newPic As New System.Drawing.Bitmap(My.Application.Info.DirectoryPath & "\images\video.png")
+                                    Dim byteArray As Byte() = New Byte(-1) {}
+                                    Using stream As New MemoryStream()
+                                        newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                        stream.Close()
+                                        byteArray = stream.ToArray()
+                                    End Using
+                                    WebServer.writeImageFromByteArray(byteArray, response)
+                                    newPic.Dispose()
+                                Catch ex As Exception
+                                    'WebServer.writeText(ex.Message, response)
+                                End Try
+                            End If
                         Else
-                            Try
-                                Dim newPic As New System.Drawing.Bitmap(My.Application.Info.DirectoryPath & "\images\video.png")
-                                Dim byteArray As Byte() = New Byte(-1) {}
-                                Using stream As New MemoryStream()
-                                    newPic.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg)
-                                    stream.Close()
-                                    byteArray = stream.ToArray()
-                                End Using
-                                WebServer.writeImageFromByteArray(byteArray, response)
-                                newPic.Dispose()
-                            Catch ex As Exception
-                                'WebServer.writeText(ex.Message, response)
-                            End Try
+                            'Util.log("Requested Movie: " & p)
+                            WebServer.writeVideoFromPath(p, response, fileTypes(thisExtension), range)
                         End If
-                    Else
-                        'Util.log("Requested Movie: " & p)
-                        WebServer.writeVideoFromPath(p, response, fileTypes(thisExtension), range)
-                    End If
 
 
                     End If
+                Else
+                    response.StatusCode = 404
+                    response.StatusDescription = "Not Found"
+                    WebServer.writeText("404", response)
+                End If
             Else
                 response.StatusCode = 404
                 response.StatusDescription = "Not Found"
                 WebServer.writeText("404", response)
             End If
-        Else
+
+        Catch ex As Exception
             response.StatusCode = 404
             response.StatusDescription = "Not Found"
             WebServer.writeText("404", response)
-        End If
+        End Try
 
+   
     End Sub
 End Class

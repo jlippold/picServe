@@ -24,6 +24,7 @@ Public Class picUtil
         Public FileSize As String
         Public Extension As String
         Public Heading As String
+        Public UNCPath As String
     End Structure
 
 
@@ -210,8 +211,9 @@ Public Class picUtil
                     Dim d As New Dictionary(Of String, String)
                     d.Add("sectionHeader", MonthName(CInt(rst("m"))) & " " & rst("Year"))
                     d.Add("image", "http://" & QueryString("HOST") & "/getFile/?key=" & My.Settings.APIKey & "&Path=" & Microsoft.JScript.GlobalObject.escape(rst("FullName")) & "&mode=thumbnail")
-                    d.Add("name", rst("FileName"))
+                    d.Add("name", rst("Dimensions") & " " & rst("FileName"))
                     d.Add("Path", rst("FilePath"))
+                    d.Add("UNCPath", String.Concat("\\", My.Computer.Name, "\", rst("FilePath").replace(":", "$") & "\" & rst("FileName")))
                     d.Add("Type", "Video")
                     d.Add("DateCreated", picUtil.DateTimeToEpoch(rst("DateTaken")))
                     d.Add("cachePath", Microsoft.JScript.GlobalObject.escape(rst("FullName")).ToLower())
@@ -256,6 +258,8 @@ Public Class picUtil
                     Else
                         d.Add("Type", "Image")
                     End If
+                    d.Add("UNCPath", String.Concat("\\", My.Computer.Name, "\", rst("FilePath").replace(":", "$") & "\" & rst("FileName")))
+
                     d.Add("DateCreated", picUtil.DateTimeToEpoch(rst("DateTaken")))
                     d.Add("cachePath", Microsoft.JScript.GlobalObject.escape(rst("FullName")).ToLower())
                     itemlist.Add(d)
@@ -301,6 +305,7 @@ Public Class picUtil
                     Else
                         d.Add("Type", "Image")
                     End If
+                    d.Add("UNCPath", String.Concat("\\", My.Computer.Name, "\", rst("FilePath").replace(":", "$") & "\" & rst("FileName")))
                     d.Add("DateCreated", picUtil.DateTimeToEpoch(rst("DateTaken")))
                     d.Add("cachePath", Microsoft.JScript.GlobalObject.escape(rst("FullName")).ToLower())
                     itemlist.Add(d)
@@ -470,6 +475,7 @@ Public Class picUtil
                                 Else
                                     r.ItemType = "Image"
                                 End If
+                                r.UNCPath = String.Concat("\\", My.Computer.Name, "\", rst("FilePath").replace(":", "$") & "\" & rst("FileName"))
 
                                 r.FileSize = "1MB" 'Util.BytesToString(info.Length)
 

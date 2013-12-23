@@ -151,7 +151,7 @@ var init = {
 			});
 			ic.setRowSelectCallBackFunction(function(rowId) {
 
-				init.playVideo(images[rowId].image.replace("&mode=thumbnail", ""), images[rowId].name);
+				init.playVideo(images[rowId].image.replace("&mode=thumbnail", ""), images[rowId].name, images[rowId].UNCPath);
 
 			});
 
@@ -219,7 +219,7 @@ var init = {
 				}
 
 				if (item.Type == "Video") {
-					init.playVideo(item.image.replace("&mode=thumbnail", ""), item.name.replace(".MOV", ".m4v"));
+					init.playVideo(item.image.replace("&mode=thumbnail", ""), item.name.replace(".MOV", ".m4v"), item.UNCPath);
 				}
 
 			});
@@ -379,7 +379,7 @@ var init = {
 				}
 
 				if (item.Type == "Video") {
-					init.playVideo(item.image.replace("&mode=thumbnail", ""), item.name);
+					init.playVideo(item.image.replace("&mode=thumbnail", ""), item.name, item.UNCPath);
 				}
 			});
 
@@ -396,9 +396,9 @@ var init = {
 	onBackground: function() {
 
 	},
-	playVideo: function(videoPath, fileName) {
+	playVideo: function(videoPath, fileName, UNCPath) {
 		var actionSheet = window.plugins.actionSheet;
-		var actions = ["Stream", "Download", "Cancel"];
+		var actions = ["Stream", "Download", "Copy URL", "Copy UNC Path", "Cancel"];
 		actionSheet.create({
 			title: fileName,
 			items: actions,
@@ -407,12 +407,38 @@ var init = {
 			if (buttonIndex == -1 || buttonIndex == (actions.length - 1)) {
 				return;
 			}
+			if (buttonIndex === 3) { //copy UNC
+				//console.log(UNCPath);
+				util.setStatusBarMessage("Copied: " + UNCPath);
+				window.plugins.clipboardPlugin.setText(UNCPath);
+				setTimeout(function() {
+					util.setStatusBarForceClear();
+				}, 1000);
+			}
+			if (buttonIndex === 2) { //copy url
+				videoPath = videoPath.replace(/&/g, "%26");
+				videoPath = videoPath.replace(/%5C/g, "||");
+				videoPath = videoPath.replace(/%3A/g, ":");
+				videoPath = videoPath.replace(/%20/g, "+");
+				
+				util.setStatusBarMessage("Copied: " + videoPath);
+				window.plugins.clipboardPlugin.setText(videoPath);
+				setTimeout(function() {
+					util.setStatusBarForceClear();
+				}, 1000);
+
+			}
 			if (buttonIndex === 1) { //download video
+				var iv = window.plugins.ImageView;
 				iv.playVideo({
 					"video": videoPath,
 					"title": fileName
 				}, function(newPath) {
-					util.doAlert("Video saved to camera roll.");
+					util.setStatusBarMessage("Video saved to camera roll.");
+					window.plugins.clipboardPlugin.setText(videoPath);
+					setTimeout(function() {
+						util.setStatusBarForceClear();
+					}, 1000);
 					return;
 				});
 			}

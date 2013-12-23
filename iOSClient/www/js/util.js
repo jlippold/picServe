@@ -76,7 +76,6 @@ var util = {
 		} catch (e) {}
 	},
 	setStatusBarMessage: function(text) {
-		console.log(text);
 		util.setStatusBarForceClear();
 		var statusBar = window.plugins.CDVStatusBarOverlay;
 		// Send a message to the statusbar

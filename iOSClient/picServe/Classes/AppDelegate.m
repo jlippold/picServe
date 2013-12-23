@@ -71,6 +71,8 @@
     self.viewController.wwwFolderName = @"www";
     self.viewController.startPage = @"index.html";
     self.viewController.invokeString = invokeString;
+    self.viewController.webView.allowsInlineMediaPlayback = NO;
+    self.viewController.webView.mediaPlaybackRequiresUserAction = NO;
 
     // NOTE: To control the view's frame size, override [self.viewController viewWillAppear:] in your view controller.
 

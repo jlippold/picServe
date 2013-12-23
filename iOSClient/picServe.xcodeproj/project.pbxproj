@@ -64,6 +64,7 @@
 		855A801117A5B23700FFDE77 /* ImageCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = 855A801017A5B23700FFDE77 /* ImageCollection.m */; };
 		85677CD117EF3D620000F816 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 85677CD017EF3D620000F816 /* Settings.bundle */; };
 		85677CD417EF3F870000F816 /* applicationPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 85677CD317EF3F870000F816 /* applicationPreferences.m */; };
+		856D9E471866545700244152 /* ClipboardPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 856D9E461866545700244152 /* ClipboardPlugin.m */; };
 		8578956917BFB99900A77B11 /* ImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8578956817BFB99900A77B11 /* ImageView.m */; };
 		85855F2717AF26B400AF3D3B /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85855F2617AF26B400AF3D3B /* Social.framework */; };
 		859715651837FE360026230E /* video@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 859715641837FE360026230E /* video@2x.png */; };
@@ -191,6 +192,8 @@
 		85677CD017EF3D620000F816 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		85677CD217EF3F870000F816 /* applicationPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = applicationPreferences.h; sourceTree = "<group>"; };
 		85677CD317EF3F870000F816 /* applicationPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = applicationPreferences.m; sourceTree = "<group>"; };
+		856D9E451866545700244152 /* ClipboardPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClipboardPlugin.h; sourceTree = "<group>"; };
+		856D9E461866545700244152 /* ClipboardPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ClipboardPlugin.m; sourceTree = "<group>"; };
 		8578956717BFB99900A77B11 /* ImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageView.h; sourceTree = "<group>"; };
 		8578956817BFB99900A77B11 /* ImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageView.m; sourceTree = "<group>"; };
 		85855F2617AF26B400AF3D3B /* Social.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Social.framework; path = System/Library/Frameworks/Social.framework; sourceTree = SDKROOT; };
@@ -420,6 +423,8 @@
 		307C750510C5A3420062BCA9 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				856D9E451866545700244152 /* ClipboardPlugin.h */,
+				856D9E461866545700244152 /* ClipboardPlugin.m */,
 				85677CD217EF3F870000F816 /* applicationPreferences.h */,
 				85677CD317EF3F870000F816 /* applicationPreferences.m */,
 				85D95A6C17F7BF90006904FF /* ImageSync.h */,
@@ -705,6 +710,7 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				85D95A6317F7BC74006904FF /* ASIAuthenticationDialog.m in Sources */,
 				1D3623260D0F684500981E51 /* AppDelegate.m in Sources */,
+				856D9E471866545700244152 /* ClipboardPlugin.m in Sources */,
 				85D95A7417F8754C006904FF /* OBGradientView.m in Sources */,
 				302D95F114D2391D003F00A1 /* MainViewController.m in Sources */,
 				85D95A7117F87505006904FF /* MPNotificationView.m in Sources */,

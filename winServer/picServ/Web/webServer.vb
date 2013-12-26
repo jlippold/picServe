@@ -197,10 +197,16 @@ Public Class WebServer
         End If
     End Sub
 
-    Public Shared Sub writeImageFromPath(ByVal path As String, response As HttpListenerResponse)
+    Public Shared Sub writeImageFromPath(ByVal path As String, response As HttpListenerResponse, Optional ByVal downsize As Boolean = False)
         response.ContentType = "image/jpeg"
         Dim content() As Byte = My.Computer.FileSystem.ReadAllBytes(path)
+
+        If content.Length > 3000000 And downsize = True Then 'Downsize where > 3MB image
+            content = imaging.downSizeImage(path)
+        End If
+
         response.ContentLength64 = content.Length
+
         Try
             response.OutputStream.Write(content, 0, content.Length)
         Catch ex As Exception

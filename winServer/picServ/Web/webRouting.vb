@@ -97,9 +97,15 @@ Public Class webRouting
                     Dim thisExtension As String = Path.GetExtension(p).ToLower()
                     If fileTypes.ContainsKey(thisExtension) Then
 
+
                         If QueryString("mode") = "" And fileTypes(thisExtension).Contains("image") Then
+                            Dim shouldDownsize As Boolean = False
+                            If QueryString("downsize") <> "" Then
+                                shouldDownsize = True
+                            End If
+
                             Util.log("Requested Full Size Image: " & p)
-                            WebServer.writeImageFromPath(p, response)
+                            WebServer.writeImageFromPath(p, response, shouldDownsize)
                             Exit Sub
                         End If
 

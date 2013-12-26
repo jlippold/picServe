@@ -22,9 +22,29 @@ static dispatch_queue_t imageQueue = NULL;
 -(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
 {
     self = (ImageCollection*)[super initWithWebView:theWebView];
+    
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];
+    
     return self;
 }
 
+
+- (void) orientationChanged:(NSNotification *)note
+{
+    [self resizeView];
+}
+
+- (void)resizeView {
+    
+    _navbar.frame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, _navbar.frame.size.height);
+    _collectionView.frame = CGRectMake(0, _collectionView.frame.origin.y, self.webView.superview.bounds.size.width, self.webView.superview.frame.size.height - _navbar.frame.size.height);
+    [_collectionView.collectionViewLayout invalidateLayout];
+
+}
 
 #pragma mark - JS interface methods
 
@@ -41,11 +61,14 @@ static dispatch_queue_t imageQueue = NULL;
     [self networkQueue].maxConcurrentOperationCount = 2;
 
     CGRect navBarFrame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, 44.0);
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+        navBarFrame.size.height = 64;
+    }
     _navbar = [[UINavigationBar alloc] initWithFrame:navBarFrame];
     
-    _navbar.barStyle = UIBarStyleBlack;
-    UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
-    [_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
+    _navbar.barStyle = UIBarStyleDefault;
+    //UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
+    //[_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
     
     UINavigationItem *navItem = [UINavigationItem alloc];
     NSString *navTitle = [options objectForKey:@"navTitle"];
@@ -57,6 +80,12 @@ static dispatch_queue_t imageQueue = NULL;
     
     if ( [[options objectForKey:@"showBackButton"] boolValue] == true) {
 
+        NSString *backArrowString = @"\U000025C0\U0000FE0E"; //BLACK LEFT-POINTING TRIANGLE PLUS VARIATION SELECTOR
+        backArrowString = [options objectForKey:@"backButtonText"];
+        UIBarButtonItem *backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(onBackButtonPress:)];
+        navItem.leftBarButtonItem = backBarButtonItem;
+/*
+        
         UIButton *settingsView = [[UIButton alloc] initWithFrame:CGRectMake(0.0, 100.0, 60.0, 30.0)];
         [settingsView addTarget:self action:@selector(onBackButtonPress:) forControlEvents:UIControlEventTouchUpInside];
         UIImage *backButtonImage = [[UIImage imageNamed:@"www/img/UINavigationBarBlackOpaqueBack.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 13, 0, 6)];
@@ -71,7 +100,7 @@ static dispatch_queue_t imageQueue = NULL;
         
         UIBarButtonItem *settingsButton = [[UIBarButtonItem alloc] initWithCustomView:settingsView];
         [navItem setLeftBarButtonItem:settingsButton];
-        
+*/
     }
     
     if ( [[options objectForKey:@"showRightButton"] boolValue] == true) {
@@ -123,9 +152,9 @@ static dispatch_queue_t imageQueue = NULL;
 	
 	myFrame = CGRectMake(
                                 _originalWebViewFrame.origin.x,
-                                _originalWebViewFrame.origin.y + 44.0,
+                                _originalWebViewFrame.origin.y + _navbar.frame.size.height,
                                 _originalWebViewFrame.size.width,
-                                _originalWebViewFrame.size.height - 44.0
+                                _originalWebViewFrame.size.height - _navbar.frame.size.height
                                 );
     
     self.webView.scrollView.scrollsToTop = NO;
@@ -133,7 +162,7 @@ static dispatch_queue_t imageQueue = NULL;
 
     _collectionView = [[UICollectionView alloc] initWithFrame:myFrame collectionViewLayout:flowLayout];
 
-    _collectionView.backgroundColor = [UIColor scrollViewTexturedBackgroundColor];
+    _collectionView.backgroundColor = [UIColor colorWithRed:0 green:0.322 blue:0.478 alpha:1];
     [_collectionView setDataSource:self];
     [_collectionView setDelegate:self];
     [_collectionView setBounces:YES];
@@ -436,20 +465,22 @@ NSTimer *timer;
 		return;
 	}
     
+    
 	
 	_originalWebViewFrame = self.webView.frame;
 	
 	CGRect mainTableFrame;
 	mainTableFrame = CGRectMake(
                                 _originalWebViewFrame.origin.x,
-                                _originalWebViewFrame.origin.y + 44.0,
+                                _originalWebViewFrame.origin.y + _navbar.frame.size.height,
                                 _originalWebViewFrame.size.width,
-                                _originalWebViewFrame.size.height - 44.0
+                                _originalWebViewFrame.size.height - _navbar.frame.size.height
                                 );
 	
 	[_collectionView setFrame:mainTableFrame];
 	[_collectionView setHidden:NO];
     [_navbar setHidden:NO];
+
     [self fadeIn];
 
     
@@ -544,6 +575,8 @@ NSTimer *timer;
 
 -(void)fadeIn
 {
+    [self resizeView];
+    
     CGRect r = [_collectionView frame];
     r.origin.y = [_collectionView frame].size.height;
     [_collectionView setFrame:r];
@@ -552,12 +585,13 @@ NSTimer *timer;
     [_navbar setHidden:NO];
     [_collectionView setHidden:NO];
     
+    
     [UIView animateWithDuration:0.3
                           delay: 0.0
                         options:UIViewAnimationCurveEaseInOut
                      animations:^{
                          CGRect r = [_collectionView frame];
-                         r.origin.y = 44.0;
+                         r.origin.y = _navbar.frame.size.height;
                          [_collectionView setFrame:r];
                          _collectionView.alpha = 1;
                          _navbar.alpha =1 ;

@@ -28,19 +28,46 @@
 -(CDVPlugin*) initWithWebView:(UIWebView*)theWebView
 {
     self = (ImageView*)[super initWithWebView:theWebView];
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];
+    
     return self;
 }
 
+
+- (void) orientationChanged:(NSNotification *)note
+{
+    [self resizeView];
+}
+
+- (void)resizeView {
+    self.scrollView.zoomScale = 1;
+    self.scrollView.contentSize = self.imageView.image.size;
+    
+    _navbar.frame = CGRectMake(_navbar.frame.origin.x, _navbar.frame.origin.y, self.webView.superview.bounds.size.width, _navbar.frame.size.height);
+    _toolBar.frame = CGRectMake(_toolBar.frame.origin.x, self.webView.superview.bounds.size.height - 44, self.webView.superview.bounds.size.width, _toolBar.frame.size.height);
+    _imageView.frame = CGRectMake(_imageView.frame.origin.x, _imageView.frame.origin.y, self.webView.superview.bounds.size.width, self.webView.superview.bounds.size.height);
+    _scrollView.frame = CGRectMake(_scrollView.frame.origin.x, _scrollView.frame.origin.y, self.webView.superview.bounds.size.width, self.webView.superview.bounds.size.height);
+    
+}
 
 - (void)createImageView:(NSArray*)arguments withDict:(NSDictionary*)options
 {
     
     //nav bar
     CGRect navBarFrame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, 44.0);
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+        navBarFrame.size.height = 64;
+    }
     _navbar = [[UINavigationBar alloc] initWithFrame:navBarFrame];
     
-    UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
-    [_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
+    //UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
+    //[_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
+    
+    _navbar.barStyle = UIBarStyleDefault;
     UINavigationItem *navItem = [UINavigationItem alloc];
     NSString *navTitle = @"Image";
     navItem.title = navTitle;
@@ -55,11 +82,11 @@
     
     //toolbar
     
-    [[UIToolbar appearance] setBackgroundImage:backgroundImage forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
+    //[[UIToolbar appearance] setBackgroundImage:backgroundImage forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
     
     _toolBar = [[UIToolbar alloc] init];
     
-    _toolBar.frame = CGRectMake(0, self.webView.superview.bounds.size.height - 44.0, self.webView.superview.bounds.size.width, 44.0);
+    _toolBar.frame = CGRectMake(0, self.webView.superview.bounds.size.height - 44, self.webView.superview.bounds.size.width, _navbar.frame.size.height);
     [_toolBar sizeToFit];
 
     UIBarButtonItem *flex = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
@@ -124,14 +151,14 @@
     _scrollView.maximumZoomScale = 4.0;
     _scrollView.minimumZoomScale = 1.0;
     _scrollView.delegate = self;
-    _scrollView.backgroundColor  = [UIColor blackColor];
+    _scrollView.backgroundColor  = [UIColor whiteColor];
     _scrollView.showsHorizontalScrollIndicator = NO;
     _scrollView.showsVerticalScrollIndicator = NO;
     
     _imageView = [[UIImageView alloc] initWithFrame:imageViewFrame];
     _imageView.contentMode = UIViewContentModeScaleAspectFit;
-    _imageView.backgroundColor = [UIColor blackColor];
-    _imageView.image = [UIImage imageNamed:@"logo200.png"];
+    _imageView.backgroundColor = [UIColor grayColor];
+    //_imageView.image = [UIImage imageNamed:@"logo200.png"];
 
     [_imageView setUserInteractionEnabled:YES];
     [_imageView setMultipleTouchEnabled:YES];
@@ -187,6 +214,7 @@
     hud.detailsLabelText = [NSString stringWithFormat:@"Image %d of %d", _imageIndex+1, [_imageViewData count]];
     [hud show:YES];
     NSString *picURL = [[_imageViewData objectAtIndex:_imageIndex] valueForKey:@"url"];
+    NSLog(@"pic: %@", picURL);
     
     NSString *cachePath = [[_imageViewData objectAtIndex:_imageIndex] valueForKey:@"cachePath"];
     
@@ -317,10 +345,11 @@
         [self createImageView:nil withDict:nil];
 	}
 	
+    
 	if(NO == [_imageView isHidden]){
 		return;
 	}
-    
+    [self resizeView];
 	_originalWebViewFrame = self.webView.frame;
     
     [self fadeIn];
@@ -527,12 +556,14 @@
                              _toolBar.alpha = 0;
                          }
                          completion:^(BOOL finished){
+                             [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
                              [_navbar setHidden:YES];
                              [_toolBar setHidden:YES];
                          }];
         
         
     } else {
+
         _navbar.alpha = 0;
         _toolBar.alpha = 0;
         [_navbar setHidden:YES];
@@ -546,6 +577,7 @@
                              _toolBar.alpha = 1;
                          }
                          completion:^(BOOL finished){
+                            [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
                              [_navbar setHidden:NO];
                              [_toolBar setHidden:NO];
 

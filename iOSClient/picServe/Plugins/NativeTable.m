@@ -24,6 +24,12 @@
 		//NSLog(@"NativeTable Initialized!");
         
     }
+ 
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self selector:@selector(orientationChanged:)
+     name:UIDeviceOrientationDidChangeNotification
+     object:[UIDevice currentDevice]];
     
     return self;
 }
@@ -42,16 +48,21 @@
 
 - (void)createTable:(NSArray*)arguments withDict:(NSDictionary*)options
 {
+
     CGRect navBarFrame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, 44.0);
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+        navBarFrame.size.height = 64;
+    }
+    
     _navbar = [[UINavigationBar alloc] initWithFrame:navBarFrame];
     
     if ( [[options objectForKey:@"navBarColor"] isEqualToString:@"black"] ) {
         _navbar.barStyle = UIBarStyleBlack;
     }
     
-    _navbar.barStyle = UIBarStyleBlack;
-    UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
-    [_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
+    _navbar.barStyle = UIBarStyleDefault;
+    //UIImage *backgroundImage = [UIImage imageNamed:@"www/img/navBar.png"];
+    //[_navbar setBackgroundImage:backgroundImage forBarMetrics:0];
     
     UINavigationItem *navItem = [UINavigationItem alloc];
     NSString *navTitle = @"";
@@ -117,12 +128,28 @@
     if ( [[options objectForKey:@"showNavBar"] boolValue] == true) {
         [_navbar setHidden:NO];
         _offsetTop = 44.0f;
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+            _offsetTop = 64;
+        }
+        
     }
     
     _searchResults = [NSMutableArray array];
 	self.webView.superview.autoresizesSubviews = YES;
 	[self.webView.superview addSubview:_mainTableView];
     
+}
+
+
+- (void) orientationChanged:(NSNotification *)note
+{
+    [self resizeView];
+}
+
+- (void)resizeView {
+    _navbar.frame = CGRectMake(_navbar.frame.origin.x, _navbar.frame.origin.y, self.webView.superview.bounds.size.width, _navbar.frame.size.height);
+    
+    _mainTableView.frame = CGRectMake(_mainTableView.frame.origin.x, _mainTableView.frame.origin.y, self.webView.superview.bounds.size.width, _mainTableView.frame.size.height);
 }
 
 - (IBAction)onRightButtonPress:(id)sender
@@ -490,6 +517,7 @@
 
 -(void)fadeIn
 {
+    [self resizeView];
     CGRect r = [_mainTableView frame];
     r.origin.y = [_mainTableView frame].size.height;
     [_mainTableView setFrame:r];

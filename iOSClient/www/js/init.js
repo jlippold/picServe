@@ -362,7 +362,7 @@ var init = {
 					$.each(images, function(i, x) {
 						if (x.Type === "Image") {
 							imageList.push({
-								'url': x.image.replace("&mode=thumbnail", ""),
+								'url': x.image.replace("&mode=thumbnail", "&downsize=true"),
 								'cachePath': x.cachePath.toString()
 							});
 							if (x.Path == path) {

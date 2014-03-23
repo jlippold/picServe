@@ -61,7 +61,9 @@
         invokeString = [url absoluteString];
         NSLog(@"picServe launchOptions = %@", url);
     }
-
+    
+    [self clearCache];
+    
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
     self.window = [[UIWindow alloc] initWithFrame:screenBounds];
     self.window.autoresizesSubviews = YES;
@@ -112,6 +114,25 @@
 
     return YES;
 }
+
+- (void) clearCache
+{
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,  NSUserDomainMask, YES);
+        NSString *documentsDirectory = [paths objectAtIndex:0];
+        NSFileManager *fileMgr = [NSFileManager defaultManager];
+        NSArray *fileArray = [fileMgr contentsOfDirectoryAtPath:documentsDirectory error:nil];
+        for (NSString *filename in fileArray)  {
+            if ([filename hasSuffix:@"dat"]) {
+                
+            } else {
+                [fileMgr removeItemAtPath:[documentsDirectory stringByAppendingPathComponent:filename] error:NULL];
+            }
+        }
+    });
+}
+
+
 
 // this happens while we are running ( in the background, or from within our own app )
 // only valid if picServe-Info.plist specifies a protocol to handle

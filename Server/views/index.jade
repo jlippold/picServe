@@ -1,0 +1,35 @@
+html(lang='en')
+head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title picServe
+    link(href='css/bootstrap.min.css', rel='stylesheet')
+    link(rel='stylesheet', type='text/css', href='flowplayer/skin/minimalist.css')
+    link(href='fancybox/jquery.fancybox.css', rel='stylesheet')
+    link(href='css/style.css', rel='stylesheet')
+  body
+    #main
+      #top
+        .navbar.navbar-fixed-top
+          .navbar-inner
+              .nav-collapse.collapse
+                ul.nav
+                  li
+                    img(src='img/logo.png', style='height: 60px; float: left;')
+                    h2(style='float: left; margin-left: 10px;')  picServe 
+      #left
+        .row-fluid(style='text-align: center;')
+          .btn-group(data-toggle='buttons-radio')
+            button#browseByDate.btn(type='button') Date
+            button#browseByFolder.btn(type='button') Folders
+        #folders.tree(style='display: none;')
+        ul#sideNav.nav.nav-list(style='display: none;')
+      #right
+        ul#images.bs-glyphicons
+    script(src='https://code.jquery.com/jquery-1.10.2.min.js')
+    script(src='js/bootstrap.min.js')
+    script(src='js/jquery.lazyload.js?r=2')
+    script(src='fancybox/jquery.fancybox.js')
+    script(src='flowplayer/flowplayer.js')
+    script(src='js/script.js')

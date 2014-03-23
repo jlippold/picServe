@@ -13,8 +13,10 @@
 -(void)setText:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options {
 	UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
 	NSString     *text       = [arguments objectAtIndex:0];
-
-	[pasteboard setValue:text forPasteboardType:@"public.text"];
+    if(![text isKindOfClass:[NSNull class]]){
+        [pasteboard setValue:text forPasteboardType:@"public.text"];
+    }
+	
 }
 
 -(void)getText:(NSMutableArray*)arguments withDict:(NSMutableDictionary*)options {

@@ -278,6 +278,7 @@ var init = {
 					'name': item.ItemName,
 					'Path': item.ItemPath.toString(),
 					'Type': item.ItemType,
+					'UNCPath': item.UNCPath,
 					'DateCreated': item.DateCreated,
 					'cachePath': escape(item.ItemPath.toString()).toLowerCase()
 				});
@@ -408,7 +409,7 @@ var init = {
 				return;
 			}
 			if (buttonIndex === 3) { //copy UNC
-				//console.log(UNCPath);
+				console.log(UNCPath);
 				util.setStatusBarMessage("Copied: " + UNCPath);
 				window.plugins.clipboardPlugin.setText(UNCPath);
 				setTimeout(function() {
@@ -495,11 +496,6 @@ var init = {
 	},
 	getJsonFromServer: function(u, callback) {
 		var isCached = false;
-		if (util.isWifi() === false) {
-			init.showLoadError();
-			return;
-		}
-
 		cache.getJson(u, function(d) {
 			if (d !== null) {
 				isCached = true;

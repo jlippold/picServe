@@ -214,7 +214,6 @@
     hud.detailsLabelText = [NSString stringWithFormat:@"Image %d of %d", _imageIndex+1, [_imageViewData count]];
     [hud show:YES];
     NSString *picURL = [[_imageViewData objectAtIndex:_imageIndex] valueForKey:@"url"];
-    NSLog(@"pic: %@", picURL);
     
     NSString *cachePath = [[_imageViewData objectAtIndex:_imageIndex] valueForKey:@"cachePath"];
     

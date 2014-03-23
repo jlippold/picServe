@@ -2,7 +2,7 @@
 #import "Base64.h"
 #import "CVCell.h"
 #import "CVHeader.h"
-#import <QuartzCore/QuartzCore.h>
+//#import <QuartzCore/QuartzCore.h>
 #import "SSZipArchive.h"
 #import "ASIHTTPRequest.h"
 #import "ASINetworkQueue.h"
@@ -274,8 +274,8 @@ static dispatch_queue_t imageQueue = NULL;
     NSString *url = [item valueForKey:@"image"];
     
     [cell.titleLabel setText:[item valueForKey:@"name"]];
-    cell.titleLabel.shadowColor = [UIColor blackColor];
-    cell.titleLabel.shadowOffset = CGSizeMake(0,-0.4);
+    //cell.titleLabel.shadowColor = [UIColor blackColor];
+    //cell.titleLabel.shadowOffset = CGSizeMake(0,-0.4);
     
     if (isEditing) {
         [cell.deleteButton setHidden:NO];
@@ -332,7 +332,6 @@ static dispatch_queue_t imageQueue = NULL;
 
 NSTimer *timer;
 - (void) loadImagesForOnscreenRows {
-    
     [self cancelTimer];
     timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(timerComplete:) userInfo:nil repeats:NO];
 }
@@ -340,26 +339,43 @@ NSTimer *timer;
 - (void) cancelTimer {
     [timer invalidate];
     timer = nil;
-    [[self networkQueue] cancelAllOperations];
+    //[[self networkQueue] cancelAllOperations];
 }
 
 - (void)timerComplete:(id)sender
 {
     
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul);
-    dispatch_async(queue, ^{
+    NSArray *ips = _collectionView.indexPathsForVisibleItems;
+    NSMutableArray *items = [ips mutableCopy];
+    
+    [[self networkQueue] cancelAllOperations];
+    
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
         
-        for (CVCell *cell in _collectionView.visibleCells) {
-            NSIndexPath *indexPath = [_collectionView indexPathForCell:cell];
-            if ( [[_collectionView indexPathsForVisibleItems] containsObject:indexPath]  ) {
-            } else {
-                continue;
+        //Pad more indexpaths to the end
+        NSInteger lastRow = 0;
+        NSInteger lastSection = 0;
+        for (NSIndexPath *indexPath in items) {
+            if (indexPath.row > lastRow) {
+                lastRow = indexPath.row;
+                lastSection = indexPath.section;
             }
+        }
+        for (int i = 0; i <= 20; i++) {
+            NSInteger newRow = lastRow + i;
+            if (newRow < [[_data objectAtIndex:lastSection] count]) {
+                NSIndexPath *myIP = [NSIndexPath indexPathForRow:newRow inSection:lastSection] ;
+                [items addObject:myIP];
+            }
+        }
+        
+        //loop on screen IP's and padding
+        for (NSIndexPath *indexPath in items) {
             
             NSDictionary *item =[[_data objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
             NSString *url = [item valueForKey:@"image"];
 
-            if ([url hasPrefix:@"http"] && [[item valueForKey:@"Base64"] isEqualToString:@""] ) {
+            if ([url hasPrefix:@"http"] && [[item valueForKey:@"Base64"] isEqualToString:@""]) {
                 
                 int section = indexPath.section;
                 int row = indexPath.row;
@@ -392,26 +408,32 @@ NSTimer *timer;
 
 - (void)requestFinished:(ASIHTTPRequest *)request
 {
-    NSString *row = [[request userInfo] valueForKey:@"row"] ;
-    NSString *section = [[request userInfo] valueForKey:@"section"];
-    NSString *cachedFile = [[request userInfo] valueForKey:@"cachedFile"];
-    NSData *data = UIImagePNGRepresentation([UIImage imageWithData:[request responseData]]);
-    NSString *strEncoded = [Base64 encode:data];
-    
-    if (![strEncoded isEqualToString:@""]) {
-        strEncoded = [@"data:image/jpg;base64," stringByAppendingString:strEncoded];
-        [strEncoded writeToFile:cachedFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        NSIndexPath *IP = [NSIndexPath indexPathForRow:[row intValue] inSection:[section intValue]];
-        NSDictionary *item =[[_data objectAtIndex:[section intValue]] objectAtIndex:[row intValue]];
-        [item setValue:strEncoded forKey:@"Base64"];
-        if ( [[_collectionView indexPathsForVisibleItems] containsObject:IP] ) {
-            [_collectionView reloadItemsAtIndexPaths:@[IP]];
-        }
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+        NSString *row = [[request userInfo] valueForKey:@"row"] ;
+        NSString *section = [[request userInfo] valueForKey:@"section"];
+        NSString *cachedFile = [[request userInfo] valueForKey:@"cachedFile"];
+        NSData *data = UIImagePNGRepresentation([UIImage imageWithData:[request responseData]]);
+        NSString *strEncoded = [Base64 encode:data];
         
-    }
+        if (![strEncoded isEqualToString:@""]) {
+            strEncoded = [@"data:image/jpg;base64," stringByAppendingString:strEncoded];
+            [strEncoded writeToFile:cachedFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
+            NSIndexPath *IP = [NSIndexPath indexPathForRow:[row intValue] inSection:[section intValue]];
+            NSDictionary *item =[[_data objectAtIndex:[section intValue]] objectAtIndex:[row intValue]];
+            [item setValue:strEncoded forKey:@"Base64"];
+            dispatch_async(dispatch_get_main_queue(), ^(void){
+                if ( [[_collectionView indexPathsForVisibleItems] containsObject:IP] ) {
+                    [_collectionView reloadItemsAtIndexPaths:@[IP]];
+                }
+            });
+            
+        }
+    });
+
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    [[self networkQueue] cancelAllOperations];
     if (isEditing) {
         return;
     }
@@ -655,7 +677,7 @@ NSTimer *timer;
 
     //... Handle failure
     //set image to whatever instead..?
-    NSLog(@"Request failed");
+   // NSLog(@"Request failed");
 }
 
 

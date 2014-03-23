@@ -24,6 +24,10 @@ Public Class webRouting
         contentExtensions.Add(".js", "application/javascript")
         contentExtensions.Add(".swf", "application/x-shockwave-flash")
         contentExtensions.Add(".png", "image/png")
+        contentExtensions.Add(".svg", "image/svg+xml")
+        contentExtensions.Add(".eot", "application/vnd.ms-fontobject")
+        contentExtensions.Add(".ttf", "application/octet-stream")
+        contentExtensions.Add(".woff", "application/x-font-woff")
 
         Dim found As Boolean = False
         For Each p As KeyValuePair(Of String, String) In contentExtensions
@@ -97,7 +101,6 @@ Public Class webRouting
                     Dim thisExtension As String = Path.GetExtension(p).ToLower()
                     If fileTypes.ContainsKey(thisExtension) Then
 
-
                         If QueryString("mode") = "" And fileTypes(thisExtension).Contains("image") Then
                             Dim shouldDownsize As Boolean = False
                             If QueryString("downsize") <> "" Then
@@ -105,7 +108,7 @@ Public Class webRouting
                             End If
 
                             Util.log("Requested Full Size Image: " & p)
-                            WebServer.writeImageFromPath(p, response, shouldDownsize)
+                            WebServer.writeImageFromPath(p, response, shouldDownsize, Path.GetFileNameWithoutExtension(p) & "." & thisExtension)
                             Exit Sub
                         End If
 
@@ -121,7 +124,7 @@ Public Class webRouting
                                     stream.Close()
                                     byteArray = stream.ToArray()
                                 End Using
-                                WebServer.writeImageFromByteArray(byteArray, response)
+                                WebServer.writeImageFromByteArray(byteArray, response, Path.GetFileNameWithoutExtension(p) & "." & thisExtension)
                                 newPic.Dispose()
                             Catch ex As Exception
                                 'WebServer.writeText(ex.Message, response)

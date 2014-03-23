@@ -204,7 +204,7 @@ Public Class picUtil
         Using conn As New SQLiteConnection(db.getConnStr)
             conn.Open()
             Dim cmd = conn.CreateCommand()
-            cmd.CommandText = "SELECT strftime('%Y', DateTaken) AS Year, strftime('%m', DateTaken) as m, * FROM Pictures where FileName like '%.mov' ORDER BY DateTaken"
+            cmd.CommandText = "SELECT strftime('%Y', DateTaken) AS Year, strftime('%m', DateTaken) as m, * FROM Pictures where FileName like '%.mov' ORDER BY DateTaken DESC"
             Dim rst = cmd.ExecuteReader()
             If rst.HasRows Then
                 While rst.Read()
@@ -336,17 +336,11 @@ Public Class picUtil
                     Dim d As New Dictionary(Of String, String)
                     Dim p As String = rst("FolderName")
                     If System.IO.Directory.Exists(p) Then
-                        Dim indexer As String = New DirectoryInfo(Path.GetDirectoryName(p & "\")).Name
-                        Dim peices As String() = p.Split("\")
-                        d.Add("Name", indexer)
-                        For i = UBound(peices) - 1 To 0 Step -1
-                            If i > 0 Then
-                                indexer = indexer & " " & peices(i)
-                            End If
-                        Next
-
-                        d.Add("Indexer", indexer)
-                        d.Add("FullPath", p)
+                        d.Add("Name", New DirectoryInfo(Path.GetDirectoryName(p & "\")).Name)
+                        d.Add("FileCount", My.Computer.FileSystem.GetFiles(p).Count.ToString)
+                        d.Add("FullPath", p.Replace("\", "||") & "||")
+                        d.Add("ParentFull", Directory.GetParent(p).FullName.Replace("\", "||") & "||")
+                        d.Add("ParentName", Directory.GetParent(p).Name)
                         d.Add("QSPath", p.Replace("\", "||"))
                         d.Add("DateModified", rst("DateModified"))
                         Folders.Add(d)

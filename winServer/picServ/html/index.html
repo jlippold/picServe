@@ -15,49 +15,42 @@
 
   <body>
 
-    <!-- Fixed navbar -->    
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
-
-        <div class="navbar-collapse collapse">
-
-            <ul class="nav navbar-nav">
-                <li>
-                    <div class="navbar-header">
-                        <a class="navbar-brand">picServe</a>
+    <div id="main">
+        <div id="top">
+            <div class="navbar navbar-fixed-top">
+                <div class="navbar-inner">
+                    <div class="">
+                        <div class="nav-collapse collapse">
+                            <ul class="nav">
+                                <li>
+                                    <img src="img/logo.png" style="height: 60px; float: left"> 
+                                    <h2 style="float: left; margin-left: 10px"> picServe </h2>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </li>
-                <li>
-                    <a href="#" id='browseByDate'>Date</a>
-                </li>
-                <li>
-                    <a href="#" id='browseByFolder'>Folders</a>
-                </li>
-                <li>
-                    <div class="btn-group" style="position:fixed; right: 4px; top: 7px">
-                      <button type="button" class="btn btn-default" id="pass">Set Password</button>
-                    </div>
-                </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right"></ul>
+                </div>
+            </div>
         </div>
+        <div id="left">
+            <div class="row-fluid" style="text-align: center">
+                <div class="btn-group" data-toggle="buttons-radio">
+                    <button id='browseByDate' type="button" class="btn">Date</button>
+                    <button id='browseByFolder' type="button" class="btn">Folders</button>
+                </div>
+            </div>
 
+
+            <div class="tree" id="folders" style="display:none"></div>
+            <ul class="nav nav-list" id="sideNav" style="display:none"></ul>
+        </div>
+        <div id="right">
+            <ul class="bs-glyphicons" id="images">
+                 
+            </ul>
+        </div>
     </div>
 
-    <div class="col-md-2">
-        <nav class="navbar navbar-default" role="navigation">
-            <div class="collapse1 navbar-collapse1">
-                <ul class="nav nav-stacked" id="sideNav">
- 
-                </ul>
-            </div><!-- /.navbar-collapse -->
-        </nav>
-    </div><!--/end left column-->
-
-    <div class="col-md-10">
-    	<ul class="bs-glyphicons" id="images">
-			 
-    	</ul>
-    </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

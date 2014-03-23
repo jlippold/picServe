@@ -3,19 +3,19 @@
   <Profiles />
   <Settings>
     <Setting Name="APIKey" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">iwa3000ETA</Value>
     </Setting>
     <Setting Name="Folders" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">I:\Pictures\Jed-iPhone;</Value>
     </Setting>
     <Setting Name="Port" Type="System.String" Scope="User">
-      <Value Profile="(Default)">12345</Value>
+      <Value Profile="(Default)">12346</Value>
     </Setting>
     <Setting Name="UploadPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">I:\Pictures\Uploads</Value>
     </Setting>
     <Setting Name="UploadPort" Type="System.String" Scope="User">
-      <Value Profile="(Default)">54321</Value>
+      <Value Profile="(Default)">64321</Value>
     </Setting>
   </Settings>
 </SettingsFile>

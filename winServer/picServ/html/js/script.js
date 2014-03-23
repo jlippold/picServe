@@ -1,5 +1,7 @@
 $(function() {
 
+	$("#left").height($(window).height());
+
 	$(document).keydown(function(e) {
 		var hasFancybox = false;
 		if ($("body > div.fancybox-wrap").size() > 0) {
@@ -27,17 +29,13 @@ $(function() {
 	});
 
 	$("#browseByFolder").bind("click", function() {
-		$(this).parents("ul").find("li").attr("class", "");
-		$(this).parent().attr("class", "active");
-		init.loadFolders(init.urlFromPath("", "getFolders"));
-		return false;
+		$("#folders").show();
+		$("#sideNav").hide();
 	});
 
 	$("#browseByDate").bind("click", function() {
-		$(this).parents("ul").find("li").attr("class", "");
-		$(this).parent().attr("class", "active");
-		init.loadRoot(init.urlFromPath("", "getRoot"));
-		return false;
+		$("#folders").hide();
+		$("#sideNav").show();
 	});
 
 	init.ready();
@@ -59,8 +57,9 @@ var init = {
 		}
 		localStorage.setItem("key", init.serverKey);
 
+		init.loadFolders(init.urlFromPath("", "getFolders"));
+		init.loadRoot(init.urlFromPath("", "getRoot"));
 		$("#browseByDate").trigger("click");
-
 	},
 	urlFromPath: function(p, script) {
 		var req = {};
@@ -68,36 +67,87 @@ var init = {
 		req.Path = p;
 		return req;
 	},
+	updateTree: function() {
+		$('.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
+		$('.tree li.parent_li > span').on('click', function(e) {
+			var children = $(this).parent('li.parent_li').find(' > ul > li');
+			if (children.is(":visible")) {
+				children.hide('fast');
+				$(this).attr('title', 'Expand this branch').find(' > i').addClass('icon-plus-sign').removeClass('icon-minus-sign');
+			} else {
+				children.show('fast');
+				$(this).attr('title', 'Collapse this branch').find(' > i').addClass('icon-minus-sign').removeClass('icon-plus-sign');
+			}
+			e.stopPropagation();
+		});
+	},
 	loadFolders: function(req) {
 		window.scrollTo(0, 0);
 		init.getJsonFromServer(req.URL, function(tableView, isCached) {
-			$("#sideNav").empty();
-			var li = "";
-			$.each(tableView, function(i, x) {
-				if (x.sectionHeader !== "Folders") {
-					li += "<li><a href='#' data-id='" + i + "'>" + x.FullPath + "</a></li>";
-				}
-			});
-			$("#sideNav").append(li);
+			$("#folders").html("<ul></ul>");
+			var RootParent = "";
+			var lastPath = "";
+			var lastParent = "";
+			var lastSUB = "";
+			var reset = false;
+			var root =$("#folders ul:first");
 
-			$("#sideNav a").bind("click", function() {
-				var rowId = $(this).attr("data-id");
+			$.each(tableView, function(i, x) {
+
+				if (RootParent == "") {
+					RootParent = x.ParentFull
+				}
+
+
+
+				var lnk = "<span><i class='icon-minus-sign'>&nbsp;</i>&nbsp;<a data-id='" + i + "'>" + x.Name + "</a></span> ";
+
+				var thisParent = x.ParentFull;
+				var thisPath = x.FullPath;
+				var newli = "<li data-path='" + thisPath + "' data-parent='" + thisParent + "' data-id='" + i + "'>" + lnk + "</li>"
+				if (RootParent == thisParent) { //Root folder
+					$(root).append(newli);
+				} else {
+					var searchli = $("#folders li[data-path='" + thisParent + "']");
+					if ($(searchli).size() == 0 ) {
+						$("#folders ul:last").append(newli);	
+					} else {
+						$(searchli).append("<ul>" + newli + "</ul>");
+					}
+				}
+
+				lastPath = thisPath;
+				lastParent = thisParent;
+
+			});
+
+			$("#folders a").bind("click", function() {
+
+				var a = $(this);
+				$("#folders span").removeClass("active");
+				$(a).parents("span").addClass("active");
+
+				var rowId = $(a).attr("data-id");
 				var item = tableView[rowId];
 
-				var param = {};
-				param.override = "getFolder";
-				param.text = item.QSPath;
-				init.loadDynamic(param);
+				if (item.FileCount != "0") {
+					var param = {};
+					param.override = "getFolder";
+					param.text = item.QSPath;
+					init.loadDynamic(param);
+				}
+
 
 				return false;
 			});
 
+			init.updateTree();
 		});
 	},
 	loadRoot: function(req) {
 		window.scrollTo(0, 0);
 		init.getJsonFromServer(req.URL, function(tableView, isCached) {
-			var li = "";
+			var li = "<li class='nav-header'>Media By Date</li>";
 			$("#sideNav").empty();
 			$.each(tableView, function(i, x) {
 				if (x.sectionHeader !== "Folders") {
@@ -177,7 +227,7 @@ var init = {
 				callback(x, true);
 			},
 			error: function() {
-				alert("Error loading data");
+				alert("Sorry, No media in this folder");
 			}
 		});
 	}
@@ -237,7 +287,7 @@ function fancyBoxMe(e) {
 				}
 			},
 			afterLoad: function() {
-				this.title = 'Image ' + (e + 1) + ' of ' + numElemets + ' :: <a href="javascript:;" id="prev" onclick="fancyBoxMe(' + preV + ')">prev</a>&nbsp;&nbsp;&nbsp;<a href="javascript:;" id="next" onclick="fancyBoxMe(' + nexT + ')">next</a>&nbsp;&nbsp;&nbsp;<a onclick="rotate()" href="javascript:;">rotate</a>&nbsp;&nbsp;&nbsp;<a onclick="kill(' + e + ')" href="javascript:;">delete</a>';
+				this.title = 'Image ' + (e + 1) + ' of ' + numElemets + ' :: <a href="javascript:;" id="prev" onclick="fancyBoxMe(' + preV + ')">prev</a>&nbsp;&nbsp;&nbsp;<a href="javascript:;" id="next" onclick="fancyBoxMe(' + nexT + ')">next</a>&nbsp;&nbsp;&nbsp;<a onclick="rotate()" href="javascript:;">rotate</a>&nbsp;&nbsp;&nbsp;<a onclick="kill(' + e + ')" href="javascript:;">delete</a>&nbsp;&nbsp;&nbsp;<a href="' + tarGet + '" download="' + tarGet + '" >download</a>';
 			}
 		}); // fancybox
 	} else {
@@ -275,6 +325,39 @@ function fancyBoxMe(e) {
 		}); // fancybox
 	}
 
+}
+
+
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+
+function dynamicSortMultiple() {
+    /*
+     * save the arguments object as it will be overwritten
+     * note that arguments object is an array-like object
+     * consisting of the names of the properties to sort by
+     */
+    var props = arguments;
+    return function (obj1, obj2) {
+        var i = 0, result = 0, numberOfProperties = props.length;
+        /* try getting a different result from 0 (equal)
+         * as long as we have extra properties to compare
+         */
+        while(result === 0 && i < numberOfProperties) {
+            result = dynamicSort(props[i])(obj1, obj2);
+            i++;
+        }
+        return result;
+    }
 }
 
 function rotateDiv() {

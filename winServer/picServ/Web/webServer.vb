@@ -197,7 +197,11 @@ Public Class WebServer
         End If
     End Sub
 
-    Public Shared Sub writeImageFromPath(ByVal path As String, response As HttpListenerResponse, Optional ByVal downsize As Boolean = False)
+    Public Shared Sub writeImageFromPath(ByVal path As String, response As HttpListenerResponse, Optional ByVal downsize As Boolean = False, Optional ByVal imageName As String = "")
+        If imageName <> "" Then
+            response.AddHeader("content-disposition", "attachment; filename=""" & imageName & """")
+        End If
+
         response.ContentType = "image/jpeg"
         Dim content() As Byte = My.Computer.FileSystem.ReadAllBytes(path)
 
@@ -302,7 +306,10 @@ Public Class WebServer
         Return value
     End Function
 
-    Public Shared Sub writeImageFromByteArray(ByVal content() As Byte, response As HttpListenerResponse)
+    Public Shared Sub writeImageFromByteArray(ByVal content() As Byte, response As HttpListenerResponse, Optional ByVal imageName As String = "")
+        If imageName <> "" Then
+            response.AddHeader("content-disposition", "attachment; filename=""" & imageName & """")
+        End If
         response.ContentType = "image/jpeg"
         response.ContentLength64 = content.Length
         response.OutputStream.Write(content, 0, content.Length)

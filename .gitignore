@@ -16,6 +16,8 @@ DerivedData
 .idea/
 *.hmap
 *.xccheckout
+*node_modules*
+*.sqlite
 
 iOSClient/build/
 iOSClient/CordovaLib/build/

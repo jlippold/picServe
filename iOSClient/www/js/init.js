@@ -39,7 +39,7 @@ var init = {
 	},
 	urlFromPath: function(p, script) {
 		var req = {};
-		req.URL = "http://" + init.serverAddress + "/" + script + "/?Path=" + escape(p.replace(/\\/g, "\\\\")) + "&key=" + init.serverKey;
+		req.URL = "https://" + init.serverAddress + "/picserv/" + script + "/?Path=" + escape(p.replace(/\\/g, "\\\\")) + "&key=" + init.serverKey;
 		req.Path = p;
 		return req;
 	},
@@ -343,7 +343,7 @@ var init = {
 				'backButtonText': backText,
 				'showRightButton': req.Path === "" ? true : false,
 				'zipcache': (isCached ? "" : escape(req.Path.replace(/\\/g, ".").replace(/:/g, "").toLowerCase()) + ".zip"),
-				'zipAddress': (isCached ? "" : "http://" + init.serverAddress + '/zip/?key=' + init.serverKey)
+				'zipAddress': (isCached ? "" : "https://" + init.serverAddress + '/picserv/zip/?key=' + init.serverKey)
 			});
 			ic.setRowSelectCallBackFunction(function(rowId) {
 				var item = images[rowId];

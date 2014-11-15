@@ -10,7 +10,7 @@
 			<key>AutocorrectionType</key>
 			<string>No</string>
 			<key>DefaultValue</key>
-			<string>192.168.1.0</string>
+			<string>jed.bz</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
@@ -28,7 +28,7 @@
 			<key>AutocorrectionType</key>
 			<string>No</string>
 			<key>DefaultValue</key>
-			<string>12345</string>
+			<string>443</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
@@ -78,7 +78,7 @@
 		</dict>
 		<dict>
 			<key>DefaultValue</key>
-			<true/>
+			<false/>
 			<key>Key</key>
 			<string>wifi</string>
 			<key>Title</key>

@@ -49,6 +49,9 @@
 - (void)createTable:(NSArray*)arguments withDict:(NSDictionary*)options
 {
 
+    CGRect bounds = [[UIScreen mainScreen] bounds];
+    self.webView.superview.frame = bounds;
+    
     CGRect navBarFrame = CGRectMake(0, 0, self.webView.superview.bounds.size.width, 44.0);
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
         navBarFrame.size.height = 64;
